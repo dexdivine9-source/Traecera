@@ -17,7 +17,7 @@ export function getSupabaseServerClient() {
   });
 }
 
-function getSupabaseAdminClient() {
+export function getSupabaseAdminClient() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
   }
