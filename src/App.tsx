@@ -15,17 +15,18 @@ import {
   Filter,
   LayoutGrid,
   List,
-  Fingerprint,
-  BarChart3,
-  RefreshCw,
   ShieldCheck,
   Menu
 } from 'lucide-react';
+import ProjectLogo from '@/components/ProjectLogo';
 import { Project } from './data/projects';
 import { motion, AnimatePresence } from 'motion/react';
 import Sidebar from './components/Sidebar';
 import { MethodologySection } from './components/MethodologySection';
 import { Navbar } from './components/Navbar';
+import { Footer } from './components/Footer';
+import { SubmissionCTA } from './components/SubmissionCTA';
+import { ProjectCard } from './components/ProjectCard';
 
 type ViewState = 
   | { name: 'home' }
@@ -278,7 +279,9 @@ function HomeView({ projects, onExplore, onProjectClick, onSignup, onSubmit, onO
                   </td>
                   <td>
                     <div className="flex items-center gap-4">
-                      <img src={proj.logo} alt={proj.name} className="w-12 h-12 rounded-xl" referrerPolicy="no-referrer" />
+                      <div className="flex-shrink-0">
+                        <ProjectLogo src={proj.logo} name={proj.name} category={proj.category} width={48} height={48} className="rounded-xl" />
+                      </div>
                       <div>
                         <div className="font-semibold text-white whitespace-nowrap mb-1 flex items-center gap-1.5">
                           {proj.name}
@@ -469,7 +472,9 @@ function LeaderboardView({ projects, onHome, onProjectClick, onSubmit, externalC
                       </td>
                       <td>
                         <div className="flex items-center gap-4">
-                          <img src={project.logo} alt={project.name} className="w-12 h-12 rounded-xl border border-white/5" referrerPolicy="no-referrer" />
+                          <div className="flex-shrink-0 relative">
+                            <ProjectLogo src={project.logo} name={project.name} category={project.category} width={48} height={48} className="rounded-xl border border-white/5" />
+                          </div>
                           <div>
                             <div className="font-semibold text-white mb-1 leading-tight flex items-center gap-1.5">
                               {project.name}
@@ -578,7 +583,9 @@ function ProjectDetailView({ projects, projectId, onBack, onHome, onSubmit, onOp
               <ArrowLeft size={16} /> Back to Rankings
             </button>
             <div className="flex items-center gap-6">
-              <img src={project.logo} alt={project.name} className="w-20 h-20 rounded-2xl border border-white/10 shadow-xl" referrerPolicy="no-referrer" />
+              <div className="flex-shrink-0">
+                <ProjectLogo src={project.logo} name={project.name} category={project.category} width={80} height={80} className="rounded-2xl border border-white/10 shadow-xl" />
+              </div>
               <div>
                 <h1 className="text-heading-1 text-white mb-2 leading-tight flex items-center gap-3">
                   {project.name}
@@ -807,12 +814,16 @@ export function ProjectCard({ project, onClick, verified }: { project: Project; 
       onClick={onClick}
     >
       <div className="flex justify-between items-start mb-6">
-        <img 
-          src={project.logo} 
-          alt={project.name} 
-          className="w-14 h-14 rounded-xl group-hover:-translate-y-1 transition-transform border border-white/5" 
-          referrerPolicy="no-referrer" 
-        />
+        <div className="flex-shrink-0 relative">
+          <ProjectLogo 
+            src={project.logo} 
+            name={project.name} 
+            category={project.category} 
+            width={56} 
+            height={56} 
+            className="rounded-xl group-hover:-translate-y-1 transition-transform border border-white/5" 
+          />
+        </div>
         <span className={`badge shrink-0 ${
           project.status === 'Live' ? 'badge-live' : 
           project.status === 'Beta' ? 'badge-beta' : 'badge-coming-soon'

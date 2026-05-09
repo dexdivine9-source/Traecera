@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import ProjectLogo from '@/components/ProjectLogo'
 import { getProjectBySlug, getProjectsByCategory } from '@/lib/projects'
 import { ExternalLink, Twitter, Activity, Globe, MapPin, CheckCircle, Users, BarChart3, TrendingUp, Zap, Clock, ShieldCheck, Database } from 'lucide-react'
 
@@ -83,7 +84,7 @@ export default async function ProjectProfile({ params }: PageProps) {
         <div className="mx-auto max-w-6xl px-6 relative z-10">
           <div className="flex flex-col md:flex-row md:items-start gap-8">
             <div className="flex-shrink-0 relative h-24 w-24 md:h-32 md:w-32 rounded-full overflow-hidden border border-white/10 bg-zinc-900 shadow-xl shadow-purple-900/20">
-              <img src={logoUrl} alt={project.name} className="h-full w-full object-cover" />
+              <ProjectLogo src={logoUrl} name={project.name} category={project.category} fill className="h-full w-full rounded-full" />
             </div>
             
             <div className="flex-1">
@@ -294,7 +295,7 @@ export default async function ProjectProfile({ params }: PageProps) {
               const rpLogo = rp.logo || rp.logo_url || "https://avatar.vercel.sh/" + rp.name;
               return (
                 <Link href={`/projects/${rp.slug}`} key={rp.slug} className="group rounded-xl border border-white/5 bg-zinc-900/30 p-4 flex items-center gap-4 hover:bg-zinc-900/80 hover:border-purple-500/30 transition-all">
-                  <img src={rpLogo} alt={rp.name} className="h-12 w-12 rounded-full border border-white/10" />
+                  <ProjectLogo src={rpLogo} name={rp.name} category={rp.category} width={48} height={48} className="rounded-full border border-white/10 flex-shrink-0" />
                   <div>
                     <h4 className="font-medium text-white group-hover:text-purple-400 transition-colors">{rp.name}</h4>
                     <div className="mt-1">{getStatusBadge(rp.stage || rp.status)}</div>
