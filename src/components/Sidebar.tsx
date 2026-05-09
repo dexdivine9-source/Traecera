@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Home,
   Compass,
@@ -19,26 +19,24 @@ import {
 } from 'lucide-react';
 import type { Project } from '../data/projects';
 import { motion, AnimatePresence } from 'motion/react';
-
-// ─── Category Definitions ───
-export interface CategoryDef {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-  dataValue: string; // The actual value to filter by in `projects`
-}
+import { supabase } from '@/lib/supabase';
 
 const CATEGORY_ICON_SIZE = 18;
 
-export const CATEGORIES: CategoryDef[] = [
-  { id: 'all',             label: 'All Projects',   icon: <Layers size={CATEGORY_ICON_SIZE} />,      dataValue: 'All' },
-  { id: 'payments',        label: 'Payments',        icon: <CreditCard size={CATEGORY_ICON_SIZE} />,  dataValue: 'Payments' },
-  { id: 'defi',            label: 'DeFi',            icon: <TrendingUp size={CATEGORY_ICON_SIZE} />,  dataValue: 'DeFi' },
-  { id: 'gaming',          label: 'Gaming',          icon: <Gamepad2 size={CATEGORY_ICON_SIZE} />,    dataValue: 'Gaming' },
-  { id: 'infrastructure',  label: 'Infrastructure',  icon: <Server size={CATEGORY_ICON_SIZE} />,      dataValue: 'Infrastructure' },
-  { id: 'rwa',             label: 'RWAs',            icon: <Landmark size={CATEGORY_ICON_SIZE} />,    dataValue: 'RWA' },
-  { id: 'prediction',      label: 'Prediction Mkts', icon: <BarChart3 size={CATEGORY_ICON_SIZE} />,   dataValue: 'Prediction Markets' },
-];
+// Fallback icon mapper for dynamic categories
+function getCategoryIcon(cat: string) {
+  const c = cat.toLowerCase();
+  if (c.includes('payment')) return <CreditCard size={CATEGORY_ICON_SIZE} />;
+  if (c.includes('defi')) return <TrendingUp size={CATEGORY_ICON_SIZE} />;
+  if (c.includes('gam')) return <Gamepad2 size={CATEGORY_ICON_SIZE} />;
+  if (c.includes('infra')) return <Server size={CATEGORY_ICON_SIZE} />;
+  if (c.includes('rwa')) return <Landmark size={CATEGORY_ICON_SIZE} />;
+  if (c.includes('predict') || c.includes('analytic')) return <BarChart3 size={CATEGORY_ICON_SIZE} />;
+  if (c.includes('security')) return <ShieldCheck size={CATEGORY_ICON_SIZE} />;
+  if (c.includes('social') || c.includes('creator')) return <Flame size={CATEGORY_ICON_SIZE} />;
+  if (c.includes('gateway')) return <Layers size={CATEGORY_ICON_SIZE} />;
+  return <Compass size={CATEGORY_ICON_SIZE} />;
+}
 
 // ─── Sidebar Props ───
 interface SidebarProps {
@@ -52,17 +50,6 @@ interface SidebarProps {
   onNavigate: (view: 'home' | 'leaderboard') => void;
   activeView: string;
   onSignup: () => void;
-}
-
-// ─── Helper: compute project counts per category ───
-function useCategoryCounts(projects: Project[]) {
-  return useMemo(() => {
-    const counts: Record<string, number> = { All: projects.length };
-    for (const proj of projects) {
-      counts[proj.category] = (counts[proj.category] || 0) + 1;
-    }
-    return counts;
-  }, [projects]);
 }
 
 // ─── Helper: determine which categories are "trending" ───
@@ -96,8 +83,40 @@ export default function Sidebar({
   activeView,
   onSignup,
 }: SidebarProps) {
-  const counts = useCategoryCounts(projects);
   const trendingCats = useTrendingCategories(projects);
+
+  const [dynamicCategories, setDynamicCategories] = useState<{ id: string; label: string; dataValue: string; count: number }[]>([]);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      const { data: categories } = await supabase
+        .from('projects')
+        .select('category')
+        .order('category');
+
+      if (categories) {
+        // Group and count dynamically
+        const counts: Record<string, number> = {};
+        for (const row of categories) {
+          const cat = row.category;
+          if (cat) counts[cat] = (counts[cat] || 0) + 1;
+        }
+
+        // Show only categories that actually have projects
+        const validCats = Object.entries(counts)
+          .filter(([_, count]) => count > 0)
+          .map(([cat, count]) => ({
+            id: cat.toLowerCase().replace(/\s+/g, '-'),
+            label: cat,
+            dataValue: cat,
+            count
+          }));
+        
+        setDynamicCategories(validCats);
+      }
+    }
+    fetchCategories();
+  }, []);
 
   const navLinks = [
     { id: 'home', label: 'Home', icon: <Home size={CATEGORY_ICON_SIZE} />, action: () => onNavigate('home') },
@@ -180,10 +199,44 @@ export default function Sidebar({
       <nav className="sidebar-nav-section sidebar-categories">
         {!collapsed && <div className="sidebar-section-label">Categories</div>}
         <ul className="sidebar-nav-list">
-          {CATEGORIES.map((cat) => {
+          {/* Always show "All Projects" at the top */}
+          <li key="all">
+            <button
+              className={`sidebar-nav-item sidebar-cat-item ${activeCategory === 'All' ? 'active' : ''}`}
+              onClick={() => {
+                onCategoryChange('All');
+                if (activeView !== 'leaderboard') onNavigate('leaderboard');
+                if (mobileOpen) onMobileClose();
+              }}
+              title={collapsed ? `All Projects (${projects.length})` : undefined}
+            >
+              <span className={`sidebar-nav-icon ${activeCategory === 'All' ? 'icon-active' : ''}`}><Layers size={CATEGORY_ICON_SIZE} /></span>
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    className="sidebar-nav-label"
+                  >
+                    All Projects
+                  </motion.span>
+                )}
+              </AnimatePresence>
+
+              {!collapsed && (
+                <span className="sidebar-cat-meta">
+                  <span className={`sidebar-cat-count ${activeCategory === 'All' ? 'count-active' : ''}`}>
+                    {projects.length}
+                  </span>
+                </span>
+              )}
+            </button>
+          </li>
+
+          {dynamicCategories.map((cat) => {
             const isActive = activeCategory === cat.dataValue;
             const isTrending = trendingCats.has(cat.dataValue);
-            const count = counts[cat.dataValue] || 0;
 
             return (
               <li key={cat.id}>
@@ -191,13 +244,12 @@ export default function Sidebar({
                   className={`sidebar-nav-item sidebar-cat-item ${isActive ? 'active' : ''}`}
                   onClick={() => {
                     onCategoryChange(cat.dataValue);
-                    // Auto-navigate to leaderboard when selecting a category
                     if (activeView !== 'leaderboard') onNavigate('leaderboard');
                     if (mobileOpen) onMobileClose();
                   }}
-                  title={collapsed ? `${cat.label} (${count})` : undefined}
+                  title={collapsed ? `${cat.label} (${cat.count})` : undefined}
                 >
-                  <span className={`sidebar-nav-icon ${isActive ? 'icon-active' : ''}`}>{cat.icon}</span>
+                  <span className={`sidebar-nav-icon ${isActive ? 'icon-active' : ''}`}>{getCategoryIcon(cat.label)}</span>
                   <AnimatePresence>
                     {!collapsed && (
                       <motion.span
@@ -214,13 +266,13 @@ export default function Sidebar({
                   {/* Right side: count + trending */}
                   {!collapsed && (
                     <span className="sidebar-cat-meta">
-                      {isTrending && cat.dataValue !== 'All' && (
+                      {isTrending && (
                         <span className="sidebar-trending-badge" title="Trending category">
                           <Flame size={12} />
                         </span>
                       )}
                       <span className={`sidebar-cat-count ${isActive ? 'count-active' : ''}`}>
-                        {count}
+                        {cat.count}
                       </span>
                     </span>
                   )}
