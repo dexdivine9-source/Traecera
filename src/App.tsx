@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { 
@@ -19,7 +21,7 @@ import {
   ShieldCheck,
   Menu
 } from 'lucide-react';
-import { projectsData, Project } from './data/projects';
+import { Project } from './data/projects';
 import { motion, AnimatePresence } from 'motion/react';
 import Sidebar from './components/Sidebar';
 import { MethodologySection } from './components/MethodologySection';
@@ -39,7 +41,8 @@ const LogoIcon = ({ className = "", size = 24 }: { className?: string, size?: nu
   <img src="/logo.png" width={size} height={size} className={`object-contain ${className}`} alt="TRÆCERA Logo" />
 );
 
-export default function App() {
+export default function App({ initialProjects }: { initialProjects: Project[] }) {
+  const projects = initialProjects;
   const [view, setView] = useState<ViewState>({ name: 'home' });
 
   // ── Sidebar state ──
@@ -63,6 +66,7 @@ export default function App() {
     <div className={`app-layout ${sidebarCollapsed ? 'layout-collapsed' : ''}`}>
       {/* Sidebar */}
       <Sidebar
+        projects={projects}
         activeCategory={activeCategory}
         onCategoryChange={setActiveCategory}
         collapsed={sidebarCollapsed}
@@ -80,6 +84,7 @@ export default function App() {
           {view.name === 'home' && (
             <HomeView 
               key="home" 
+              projects={projects}
               onExplore={goLeaderboard} 
               onProjectClick={goProject} 
               onSignup={goSignup} 
@@ -90,6 +95,7 @@ export default function App() {
           {view.name === 'leaderboard' && (
             <LeaderboardView
               key="leaderboard"
+              projects={projects}
               onHome={goHome}
               onProjectClick={goProject}
               onSubmit={goSubmit}
@@ -101,6 +107,7 @@ export default function App() {
           {view.name === 'project' && (
             <ProjectDetailView 
               key={`project-${view.id}`} 
+              projects={projects}
               projectId={view.id} 
               onBack={goLeaderboard} 
               onHome={goHome} 
@@ -183,12 +190,12 @@ function SignupView({ onClose }: { key?: React.Key; onClose: () => void }) {
 // -----------------------------------------
 // Home View
 // -----------------------------------------
-function HomeView({ onExplore, onProjectClick, onSignup, onSubmit, onOpenMenu }: { key?: React.Key; onExplore: () => void; onProjectClick: (id: string) => void; onSignup: () => void; onSubmit: () => void; onOpenMenu: () => void }) {
-  const topProjects = [...projectsData]
+function HomeView({ projects, onExplore, onProjectClick, onSignup, onSubmit, onOpenMenu }: { projects: Project[]; key?: React.Key; onExplore: () => void; onProjectClick: (id: string) => void; onSignup: () => void; onSubmit: () => void; onOpenMenu: () => void }) {
+  const topProjects = [...projects]
     .sort((a, b) => b.trending_score - a.trending_score)
     .slice(0, 5);
   
-  const trendingProjects = [...projectsData]
+  const trendingProjects = [...projects]
     .sort((a, b) => b.metrics.growth_percent - a.metrics.growth_percent)
     .filter(p => !topProjects.find(tp => tp.id === p.id))
     .slice(0, 6);
@@ -328,7 +335,7 @@ function HomeView({ onExplore, onProjectClick, onSignup, onSubmit, onOpenMenu }:
 // -----------------------------------------
 // Leaderboard View
 // -----------------------------------------
-function LeaderboardView({ onHome, onProjectClick, onSubmit, externalCategory, onCategoryChange, onOpenMenu }: { key?: React.Key; onHome: () => void; onProjectClick: (id: string) => void; onSubmit: () => void; externalCategory?: string; onCategoryChange?: (cat: string) => void; onOpenMenu: () => void }) {
+function LeaderboardView({ projects, onHome, onProjectClick, onSubmit, externalCategory, onCategoryChange, onOpenMenu }: { projects: Project[]; key?: React.Key; onHome: () => void; onProjectClick: (id: string) => void; onSubmit: () => void; externalCategory?: string; onCategoryChange?: (cat: string) => void; onOpenMenu: () => void }) {
   // Use external category from sidebar if provided, otherwise local state
   const [localFilterCat, setLocalFilterCat] = useState<string>('All');
   const filterCat = externalCategory ?? localFilterCat;
@@ -342,19 +349,19 @@ function LeaderboardView({ onHome, onProjectClick, onSubmit, externalCategory, o
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
-  const categories = ['All', ...Array.from(new Set(projectsData.map(p => p.category)))];
+  const categories = ['All', ...Array.from(new Set(projects.map(p => p.category)))];
   const statuses = ['All', 'Live', 'Beta', 'Coming Soon'];
-  const countries = ['All', ...Array.from(new Set(projectsData.map(p => p.country)))];
+  const countries = ['All', ...Array.from(new Set(projects.map(p => p.country)))];
 
   const filteredData = useMemo(() => {
-    return projectsData.filter(p => {
+    return projects.filter(p => {
       const matchCat = filterCat === 'All' || p.category === filterCat;
       const matchStatus = filterStatus === 'All' || p.status === filterStatus;
       const matchCountry = filterCountry === 'All' || p.country === filterCountry;
       const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase());
       return matchCat && matchStatus && matchCountry && matchSearch;
     }).sort((a, b) => b.trending_score - a.trending_score);
-  }, [filterCat, filterStatus, filterCountry, search]);
+  }, [projects, filterCat, filterStatus, filterCountry, search]);
 
   return (
     <motion.div 
@@ -529,8 +536,8 @@ function LeaderboardView({ onHome, onProjectClick, onSubmit, externalCategory, o
 // -----------------------------------------
 // Project Detail View
 // -----------------------------------------
-function ProjectDetailView({ projectId, onBack, onHome, onSubmit, onOpenMenu }: { key?: React.Key; projectId: string; onBack: () => void; onHome: () => void; onSubmit: () => void; onOpenMenu: () => void }) {
-  const project = projectsData.find(p => p.id === projectId);
+function ProjectDetailView({ projects, projectId, onBack, onHome, onSubmit, onOpenMenu }: { projects: Project[]; key?: React.Key; projectId: string; onBack: () => void; onHome: () => void; onSubmit: () => void; onOpenMenu: () => void }) {
+  const project = projects.find(p => p.id === projectId);
   
   if (!project) return <div>Project not found</div>;
 
@@ -551,11 +558,11 @@ function ProjectDetailView({ projectId, onBack, onHome, onSubmit, onOpenMenu }: 
   }, [project]);
 
   const isVerified = useMemo(() => {
-    return [...projectsData]
+    return [...projects]
       .sort((a, b) => b.trending_score - a.trending_score)
       .slice(0, 3)
       .some(p => p.id === project.id);
-  }, [project.id]);
+  }, [projects, project.id]);
 
   return (
     <motion.div 

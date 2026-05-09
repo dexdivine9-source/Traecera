@@ -32,7 +32,26 @@ TRÆCERA leverages **Momentum Intelligence** and **On-Chain Velocity** to map ou
 - **Animations**: Motion (formally Framer Motion) 
 - **Data Visualization**: Recharts
 - **Icons**: Lucide React
-- **Build Tool**: Vite
+- **Framework Runtime**: Next.js (App Router)
+
+## 🔗 On-chain Metrics Pipeline (Helius + Supabase)
+
+Server-side endpoints are available for live on-chain metrics:
+
+- `GET /api/helius/[address]`: fetches Helius transactions for a program address, computes:
+  - `transaction_volume` (USDC total)
+  - `active_users` (unique wallets)
+  - `volume_24h` (USDC in last 24h)
+  - `growth_percent` (last 30d vs previous 30d)
+- `GET /api/cron/helius-refresh`: loops all project program addresses from Supabase and refreshes metrics.
+
+Daily cron is configured via `vercel.json` on `/api/cron/helius-refresh`.
+
+Required environment variables are documented in `.env.example`.
+
+Supabase migration for this pipeline is included at:
+
+- `supabase/migrations/20260505162500_add_helius_metrics.sql`
 
 ## 💻 Run Locally
 
@@ -55,7 +74,7 @@ TRÆCERA leverages **Momentum Intelligence** and **On-Chain Velocity** to map ou
    ```
 
 4. View the app: 
-   Open `http://localhost:3000` (or the port specified by Vite) in your browser to interact with the platform.
+   Open `http://localhost:3000` in your browser to interact with the platform.
 
 ## 🤝 Project Submissions
 

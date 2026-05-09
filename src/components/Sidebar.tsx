@@ -17,7 +17,7 @@ import {
   X,
   Flame,
 } from 'lucide-react';
-import { projectsData } from '../data/projects';
+import type { Project } from '../data/projects';
 import { motion, AnimatePresence } from 'motion/react';
 
 // ─── Category Definitions ───
@@ -25,7 +25,7 @@ export interface CategoryDef {
   id: string;
   label: string;
   icon: React.ReactNode;
-  dataValue: string; // The actual value to filter by in projectsData
+  dataValue: string; // The actual value to filter by in `projects`
 }
 
 const CATEGORY_ICON_SIZE = 18;
@@ -42,6 +42,7 @@ export const CATEGORIES: CategoryDef[] = [
 
 // ─── Sidebar Props ───
 interface SidebarProps {
+  projects: Project[];
   activeCategory: string;
   onCategoryChange: (category: string) => void;
   collapsed: boolean;
@@ -54,22 +55,22 @@ interface SidebarProps {
 }
 
 // ─── Helper: compute project counts per category ───
-function useCategoryCounts() {
+function useCategoryCounts(projects: Project[]) {
   return useMemo(() => {
-    const counts: Record<string, number> = { All: projectsData.length };
-    for (const proj of projectsData) {
+    const counts: Record<string, number> = { All: projects.length };
+    for (const proj of projects) {
       counts[proj.category] = (counts[proj.category] || 0) + 1;
     }
     return counts;
-  }, []);
+  }, [projects]);
 }
 
 // ─── Helper: determine which categories are "trending" ───
-function useTrendingCategories(): Set<string> {
+function useTrendingCategories(projects: Project[]): Set<string> {
   return useMemo(() => {
     // A category is trending if its average growth > 40%
     const catGrowth: Record<string, { sum: number; count: number }> = {};
-    for (const proj of projectsData) {
+    for (const proj of projects) {
       if (!catGrowth[proj.category]) catGrowth[proj.category] = { sum: 0, count: 0 };
       catGrowth[proj.category].sum += proj.metrics.growth_percent;
       catGrowth[proj.category].count += 1;
@@ -79,11 +80,12 @@ function useTrendingCategories(): Set<string> {
       if (data.sum / data.count > 40) trending.add(cat);
     }
     return trending;
-  }, []);
+  }, [projects]);
 }
 
 // ─── Main Sidebar Component ───
 export default function Sidebar({
+  projects,
   activeCategory,
   onCategoryChange,
   collapsed,
@@ -94,8 +96,8 @@ export default function Sidebar({
   activeView,
   onSignup,
 }: SidebarProps) {
-  const counts = useCategoryCounts();
-  const trendingCats = useTrendingCategories();
+  const counts = useCategoryCounts(projects);
+  const trendingCats = useTrendingCategories(projects);
 
   const navLinks = [
     { id: 'home', label: 'Home', icon: <Home size={CATEGORY_ICON_SIZE} />, action: () => onNavigate('home') },

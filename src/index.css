@@ -2,6 +2,11 @@
 
 @import "tailwindcss";
 
+/* Resolve utility classes everywhere the app renders (Tailwind v4 + PostCSS entry via app/globals.css) */
+@source "../app/**/*.{ts,tsx,js,jsx,mjs}";
+@source "./**/*.{ts,tsx,js,jsx,mjs}";
+@source "../components/**/*.{ts,tsx,js,jsx,mjs}";
+
 @theme {
   /* Color Palette */
   --color-brand-purple: #8B5CF6;
@@ -575,6 +580,32 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
 }
 
+/* Premium sidebar CTA — all breakpoints (desktop + mobile drawer) */
+.sidebar-cta-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--color-brand-purple), var(--color-brand-blue));
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+  margin: 0;
+}
+
+.sidebar-cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+  filter: brightness(1.1);
+}
+
 /* ─── Mobile Overlay ─── */
 .sidebar-overlay {
   position: fixed;
@@ -713,31 +744,5 @@ h1, h2, h3, h4, h5, h6 {
   /* Sidebar collapse button hidden on mobile/tablet */
   .sidebar .sidebar-collapse-btn.desktop-only {
     display: none;
-  }
-
-  /* Premium Sidebar CTA button */
-  .sidebar-cta-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 12px 16px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--color-brand-purple), var(--color-brand-blue));
-    color: #ffffff;
-    font-family: var(--font-sans);
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
-    margin: 0;
-  }
-
-  .sidebar-cta-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
-    filter: brightness(1.1);
   }
 }

@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/helius-refresh",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
