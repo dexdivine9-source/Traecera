@@ -23,6 +23,7 @@ export interface Project {
     status: number;
     completeness: number;
     onchain: number;
+    activity: number;
   };
   last_updated: string;
 }
