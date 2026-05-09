@@ -26,6 +26,13 @@ import Sidebar from './components/Sidebar';
 import { MethodologySection } from './components/MethodologySection';
 import { Navbar } from './components/Navbar';
 
+export function getScoreBadgeColor(score: number | undefined) {
+  if (score === undefined) return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+  if (score >= 80) return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
+  if (score >= 60) return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+  if (score >= 40) return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+  return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+}
 type ViewState = 
   | { name: 'home' }
   | { name: 'leaderboard' }
@@ -365,7 +372,12 @@ function LeaderboardView({ projects, onHome, onProjectClick, onSubmit, externalC
       const matchCountry = filterCountry === 'All' || p.country === filterCountry;
       const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase());
       return matchCat && matchStatus && matchCountry && matchSearch;
-    }).sort((a, b) => b.trending_score - a.trending_score);
+    }).sort((a, b) => {
+      const scoreA = a.traecera_score ?? 0;
+      const scoreB = b.traecera_score ?? 0;
+      if (scoreB !== scoreA) return scoreB - scoreA;
+      return b.trending_score - a.trending_score;
+    });
   }, [projects, filterCat, filterStatus, filterCountry, search]);
 
   return (
@@ -450,6 +462,7 @@ function LeaderboardView({ projects, onHome, onProjectClick, onSubmit, externalC
                 <tr>
                   <th className="w-16 text-center">Rank</th>
                   <th>Project</th>
+                  <th>Score</th>
                   <th>Category</th>
                   <th>Location</th>
                   <th className="text-right">Active Users</th>
@@ -490,6 +503,15 @@ function LeaderboardView({ projects, onHome, onProjectClick, onSubmit, externalC
                             </span>
                           </div>
                         </div>
+                      </td>
+                      <td>
+                        {project.traecera_score !== undefined ? (
+                          <span className={`px-2 py-1 rounded text-xs font-bold border ${getScoreBadgeColor(project.traecera_score)}`}>
+                            {project.traecera_score.toFixed(1)}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500 font-mono">—</span>
+                        )}
                       </td>
                       <td>
                         <span className="text-slate-300 text-sm whitespace-nowrap">{project.category}</span>
@@ -834,12 +856,19 @@ export function ProjectCard({ project, onClick, verified }: { project: Project; 
             className="rounded-xl group-hover:-translate-y-1 transition-transform border border-white/5" 
           />
         </div>
-        <span className={`badge shrink-0 ${
-          project.status === 'Live' ? 'badge-live' : 
-          project.status === 'Beta' ? 'badge-beta' : 'badge-coming-soon'
-        }`}>
-          {project.status}
-        </span>
+        <div className="flex items-center gap-2">
+          {project.traecera_score !== undefined && (
+            <span className={`px-2 py-0.5 rounded text-xs font-bold border ${getScoreBadgeColor(project.traecera_score)}`}>
+              {project.traecera_score.toFixed(1)}
+            </span>
+          )}
+          <span className={`badge shrink-0 ${
+            project.status === 'Live' ? 'badge-live' : 
+            project.status === 'Beta' ? 'badge-beta' : 'badge-coming-soon'
+          }`}>
+            {project.status}
+          </span>
+        </div>
       </div>
       
       <h3 className="text-heading-3 text-white mb-2 flex items-center gap-2">

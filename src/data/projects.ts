@@ -17,6 +17,13 @@ export interface Project {
   status: "Live" | "Beta" | "Coming Soon";
   metrics: ProjectMetrics;
   trending_score: number;
+  traecera_score?: number;
+  score_breakdown?: {
+    verification: number;
+    status: number;
+    completeness: number;
+    onchain: number;
+  };
   last_updated: string;
 }
 
@@ -71,6 +78,8 @@ export function mapSupabaseProjectRow(row: Record<string, unknown>): Project {
       ...(typeof volume_24hRaw === "number" ? { volume_24h: volume_24hRaw } : {}),
     },
     trending_score: num(row.trending_score ?? metricsObj?.trending_score),
+    traecera_score: typeof row.traecera_score === "number" ? row.traecera_score : undefined,
+    score_breakdown: typeof row.score_breakdown === "object" && row.score_breakdown !== null ? row.score_breakdown as any : undefined,
     last_updated:
       typeof row.last_updated === "string"
         ? row.last_updated
