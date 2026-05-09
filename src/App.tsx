@@ -16,7 +16,8 @@ import {
   LayoutGrid,
   List,
   ShieldCheck,
-  Menu
+  Menu,
+  Fingerprint
 } from 'lucide-react';
 import ProjectLogo from '@/components/ProjectLogo';
 import { Project } from './data/projects';
@@ -24,9 +25,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import Sidebar from './components/Sidebar';
 import { MethodologySection } from './components/MethodologySection';
 import { Navbar } from './components/Navbar';
-import { Footer } from './components/Footer';
-import { SubmissionCTA } from './components/SubmissionCTA';
-import { ProjectCard } from './components/ProjectCard';
 
 type ViewState = 
   | { name: 'home' }
