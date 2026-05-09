@@ -283,7 +283,7 @@ function HomeView({ projects, onExplore, onProjectClick, onSignup, onSubmit, onO
                         <ProjectLogo src={proj.logo} name={proj.name} category={proj.category} width={48} height={48} className="rounded-xl" />
                       </div>
                       <div>
-                        <div className="font-semibold text-white whitespace-nowrap mb-1 flex items-center gap-1.5">
+                        <div className="font-semibold text-white mb-1 flex items-center gap-1.5">
                           {proj.name}
                           {idx < 3 && <ShieldCheck size={14} className="text-blue-400 fill-blue-400/10" />}
                         </div>
@@ -300,9 +300,13 @@ function HomeView({ projects, onExplore, onProjectClick, onSignup, onSubmit, onO
                     <span className="text-slate-300 text-sm">{proj.category}</span>
                   </td>
                   <td className="text-right">
-                    <div className="inline-flex items-center gap-1 text-emerald-400 font-mono font-medium">
-                      +{proj.metrics.growth_percent}% <TrendingUp size={14} />
-                    </div>
+                    {proj.metrics.growth_percent ? (
+                      <div className={`inline-flex items-center gap-1 font-mono font-medium ${proj.metrics.growth_percent >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {proj.metrics.growth_percent >= 0 ? '+' : ''}{proj.metrics.growth_percent}% <TrendingUp size={14} className={proj.metrics.growth_percent < 0 ? 'rotate-180' : ''} />
+                      </div>
+                    ) : (
+                      <span className="text-slate-500 font-mono">—</span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -498,13 +502,17 @@ function LeaderboardView({ projects, onHome, onProjectClick, onSubmit, externalC
                         </div>
                       </td>
                       <td className="text-right">
-                        <div className="text-white font-mono">{project.metrics.active_users.toLocaleString()}</div>
+                        <div className="text-white font-mono">{project.metrics.active_users ? project.metrics.active_users.toLocaleString() : <span className="text-slate-500">—</span>}</div>
                       </td>
                       <td className="text-right">
-                        <div className={`inline-flex items-center gap-1 font-mono font-medium ${project.metrics.growth_percent >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                          {project.metrics.growth_percent >= 0 ? '+' : ''}{project.metrics.growth_percent}% 
-                          <TrendingUp size={14} className={project.metrics.growth_percent < 0 ? 'rotate-180' : ''} />
-                        </div>
+                        {project.metrics.growth_percent ? (
+                          <div className={`inline-flex items-center gap-1 font-mono font-medium ${project.metrics.growth_percent >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {project.metrics.growth_percent >= 0 ? '+' : ''}{project.metrics.growth_percent}% 
+                            <TrendingUp size={14} className={project.metrics.growth_percent < 0 ? 'rotate-180' : ''} />
+                          </div>
+                        ) : (
+                          <span className="text-slate-500 font-mono">—</span>
+                        )}
                       </td>
                     </motion.tr>
                   ))}
@@ -636,7 +644,7 @@ function ProjectDetailView({ projects, projectId, onBack, onHome, onSubmit, onOp
               <Users size={16} className="text-brand-blue" /> Active Users
             </div>
             <div className="text-3xl font-bold text-white font-mono">
-              {project.metrics.active_users.toLocaleString()}
+              {project.metrics.active_users ? project.metrics.active_users.toLocaleString() : <span className="text-slate-500">—</span>}
             </div>
           </div>
           
@@ -645,7 +653,7 @@ function ProjectDetailView({ projects, projectId, onBack, onHome, onSubmit, onOp
               <Activity size={16} className="text-brand-purple" /> Volume (30d)
             </div>
             <div className="text-3xl font-bold text-white font-mono">
-              ${(project.metrics.transaction_volume / 1000000).toFixed(2)}M
+              {project.metrics.transaction_volume ? `$${(project.metrics.transaction_volume / 1000000).toFixed(2)}M` : <span className="text-slate-500">—</span>}
             </div>
           </div>
 
@@ -654,9 +662,13 @@ function ProjectDetailView({ projects, projectId, onBack, onHome, onSubmit, onOp
             <div className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 mb-4 relative z-10">
               <TrendingUp size={16} className={project.metrics.growth_percent >= 0 ? 'text-emerald-400' : 'text-rose-400'} /> Growth (30d)
             </div>
-            <div className={`text-3xl font-bold font-mono relative z-10 ${project.metrics.growth_percent >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-              {project.metrics.growth_percent >= 0 ? '+' : ''}{project.metrics.growth_percent}%
-            </div>
+            {project.metrics.growth_percent ? (
+              <div className={`text-3xl font-bold font-mono relative z-10 ${project.metrics.growth_percent >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {project.metrics.growth_percent >= 0 ? '+' : ''}{project.metrics.growth_percent}%
+              </div>
+            ) : (
+              <div className="text-3xl font-bold font-mono relative z-10 text-slate-500">—</div>
+            )}
           </div>
 
           <div className="glass-card p-6">
@@ -843,14 +855,18 @@ export function ProjectCard({ project, onClick, verified }: { project: Project; 
       <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[rgba(255,255,255,0.05)] mb-6 mt-auto">
         <div>
           <div className="text-xs text-slate-400 font-mono uppercase tracking-wider mb-1">Users</div>
-          <div className="text-sm font-bold text-white">{project.metrics.active_users.toLocaleString()}</div>
+          <div className="text-sm font-bold text-white">{project.metrics.active_users ? project.metrics.active_users.toLocaleString() : <span className="text-slate-500">—</span>}</div>
         </div>
         <div>
           <div className="text-xs text-slate-400 font-mono uppercase tracking-wider mb-1">Growth</div>
-          <div className={`text-sm font-bold flex items-center gap-1 ${project.metrics.growth_percent >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-            {project.metrics.growth_percent >= 0 ? '+' : ''}{project.metrics.growth_percent}% 
-            <TrendingUp size={14} className={project.metrics.growth_percent < 0 ? 'rotate-180' : ''} />
-          </div>
+          {project.metrics.growth_percent ? (
+            <div className={`text-sm font-bold flex items-center gap-1 ${project.metrics.growth_percent >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              {project.metrics.growth_percent >= 0 ? '+' : ''}{project.metrics.growth_percent}% 
+              <TrendingUp size={14} className={project.metrics.growth_percent < 0 ? 'rotate-180' : ''} />
+            </div>
+          ) : (
+            <span className="text-sm font-bold text-slate-500">—</span>
+          )}
         </div>
       </div>
       
