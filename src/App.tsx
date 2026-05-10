@@ -198,7 +198,12 @@ function SignupView({ onClose }: { key?: React.Key; onClose: () => void }) {
 // -----------------------------------------
 function HomeView({ projects, onExplore, onProjectClick, onSignup, onSubmit, onOpenMenu }: { projects: Project[]; key?: React.Key; onExplore: () => void; onProjectClick: (id: string) => void; onSignup: () => void; onSubmit: () => void; onOpenMenu: () => void }) {
   const topProjects = [...projects]
-    .sort((a, b) => b.trending_score - a.trending_score)
+    .sort((a, b) => {
+      const scoreA = a.traecera_score ?? 0;
+      const scoreB = b.traecera_score ?? 0;
+      if (scoreB !== scoreA) return scoreB - scoreA;
+      return b.trending_score - a.trending_score;
+    })
     .slice(0, 5);
   
   const trendingProjects = [...projects]
@@ -465,7 +470,7 @@ function LeaderboardView({ projects, onHome, onProjectClick, onSubmit, externalC
                   <th>Score</th>
                   <th>Category</th>
                   <th>Location</th>
-                  <th className="text-right">Active Users</th>
+                  <th className="text-right">Growth ( 24 hrs )</th>
                   <th className="text-right">Growth (30d)</th>
                 </tr>
               </thead>
@@ -522,7 +527,7 @@ function LeaderboardView({ projects, onHome, onProjectClick, onSubmit, externalC
                         </div>
                       </td>
                       <td className="text-right">
-                        <div className="text-white font-mono">{project.metrics.active_users ? project.metrics.active_users.toLocaleString() : <span className="text-slate-500">—</span>}</div>
+                        <div className="text-white font-mono">{project.metrics.volume_24h ? `+${project.metrics.volume_24h.toLocaleString()}%` : <span className="text-slate-500">—</span>}</div>
                       </td>
                       <td className="text-right">
                         {project.metrics.growth_percent ? (
@@ -661,10 +666,10 @@ function ProjectDetailView({ projects, projectId, onBack, onHome, onSubmit, onOp
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           <div className="glass-card p-6">
             <div className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 mb-4">
-              <Users size={16} className="text-brand-blue" /> Active Users
+              <TrendingUp size={16} className="text-brand-blue" /> Growth ( 24 hrs )
             </div>
             <div className="text-3xl font-bold text-white font-mono">
-              {project.metrics.active_users ? project.metrics.active_users.toLocaleString() : <span className="text-slate-500">—</span>}
+              {project.metrics.volume_24h ? `+${project.metrics.volume_24h.toLocaleString()}%` : <span className="text-slate-500">—</span>}
             </div>
           </div>
           
