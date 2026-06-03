@@ -17,7 +17,9 @@ import {
   List,
   ShieldCheck,
   Menu,
-  Fingerprint
+  Fingerprint,
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import ProjectLogo from '@/components/ProjectLogo';
 import { Project } from './data/projects';
@@ -979,6 +981,139 @@ function Footer() {
 // Submit Project View
 // -----------------------------------------
 function SubmitProjectView({ onClose }: { key?: React.Key; onClose: () => void }) {
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [category, setCategory] = useState('')
+  const [status, setStatus] = useState('Live')
+  const [country, setCountry] = useState('')
+  const [website, setWebsite] = useState('')
+  const [xLink, setXLink] = useState('')
+  const [githubUrl, setGithubUrl] = useState('')
+  const [programAddress, setProgramAddress] = useState('')
+  const [walletAddress, setWalletAddress] = useState('')
+  const [teamLeadName, setTeamLeadName] = useState('')
+  const [teamLeadTwitter, setTeamLeadTwitter] = useState('')
+  const [isDoxxed, setIsDoxxed] = useState(false)
+  const [hasAudit, setHasAudit] = useState(false)
+
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value
+    if (text.length <= 200) {
+      setDescription(text)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+    setSuccess(false)
+
+    // Validation
+    if (!name.trim()) {
+      setError('Project Name is required.')
+      setLoading(false)
+      return
+    }
+    if (!xLink.trim()) {
+      setError('Twitter/X Link is required.')
+      setLoading(false)
+      return
+    }
+    if (!teamLeadName.trim()) {
+      setError('Team Lead Name is required.')
+      setLoading(false)
+      return
+    }
+
+    try {
+      const res = await fetch('/api/projects/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          description,
+          category,
+          status,
+          country,
+          website,
+          x_link: xLink,
+          github_url: githubUrl,
+          program_address: programAddress,
+          wallet_address: walletAddress,
+          team_lead_name: teamLeadName,
+          team_lead_twitter: teamLeadTwitter,
+          is_doxxed: isDoxxed,
+          has_audit: hasAudit,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to submit project.')
+      }
+
+      setSuccess(true)
+      // Reset form
+      setName('')
+      setDescription('')
+      setCategory('')
+      setStatus('Live')
+      setCountry('')
+      setWebsite('')
+      setXLink('')
+      setGithubUrl('')
+      setProgramAddress('')
+      setWalletAddress('')
+      setTeamLeadName('')
+      setTeamLeadTwitter('')
+      setIsDoxxed(false)
+      setHasAudit(false)
+    } catch (err: any) {
+      console.error('[TRÆCERA] Submission failed:', err)
+      setError(err?.message || 'An unexpected error occurred. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (success) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full h-full min-h-[100dvh] bg-[#0a0a0f] overflow-y-auto overflow-x-hidden pb-24 relative flex items-center justify-center"
+      >
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-purple/5 blur-[120px] rounded-full pointer-events-none -z-10" />
+        <div className="max-w-md mx-auto px-6 py-20 text-center relative">
+          <div className="inline-flex justify-center items-center w-20 h-20 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-8 shadow-2xl relative animate-bounce">
+             <ShieldCheck className="text-emerald-400" size={40} />
+             <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-2xl -z-10" />
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-4 font-display">Submission Confirmed</h1>
+          <p className="text-sm text-zinc-300 max-w-sm mx-auto mb-10 leading-relaxed font-sans">
+            Project submitted successfully. <br/>We will review and index it within 48 hours. 🟣
+          </p>
+          <div className="flex justify-center gap-4">
+            <button className="btn-white px-6 py-3 text-sm font-semibold rounded-xl" onClick={() => setSuccess(false)}>
+              Submit Another Project
+            </button>
+            <button className="inline-flex items-center gap-2 rounded-xl bg-white/5 border border-white/10 px-6 py-3 text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer" onClick={onClose}>
+              Back to Overview
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    )
+  }
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -1003,32 +1138,73 @@ function SubmitProjectView({ onClose }: { key?: React.Key; onClose: () => void }
           </p>
         </div>
 
-        <form className="glass-card p-8 md:p-12 border border-white/5 bg-[#080808]/80 backdrop-blur-3xl shadow-2xl" onSubmit={e => e.preventDefault()}>
+        <form className="glass-card p-8 md:p-12 border border-white/5 bg-[#080808]/80 backdrop-blur-3xl shadow-2xl" onSubmit={handleSubmit}>
           <div className="space-y-12">
             
+            {error && (
+              <div className="flex items-start gap-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 p-4 rounded-xl text-sm animate-in fade-in slide-in-from-top-2 duration-200">
+                <AlertCircle className="shrink-0 mt-0.5" size={16} />
+                <div>
+                  <span className="font-semibold">Submission failed: </span>
+                  {error}
+                </div>
+              </div>
+            )}
+
             {/* Section 1: Basic Info */}
             <div>
               <h3 className="text-lg font-bold text-white mb-6 border-b border-white/5 pb-3">1. Basic Info</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-semibold text-slate-300">Project Name</label>
-                  <input type="text" className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all" placeholder="e.g., UseSara" />
+                  <label className="text-sm font-semibold text-slate-300">Project Name <span className="text-rose-400">*</span></label>
+                  <input 
+                    type="text" 
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    required
+                    className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all text-sm font-sans" 
+                    placeholder="e.g., UseSara" 
+                  />
                 </div>
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-semibold text-slate-300">Short Description</label>
-                  <textarea className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all min-h-[80px] resize-none" placeholder="1-2 lines summarizing the project's core value..."></textarea>
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm font-semibold text-slate-300">Description</label>
+                    <span className={`text-xs ${description.length >= 200 ? 'text-rose-400 font-bold' : 'text-zinc-500'}`}>
+                      {description.length} / 200
+                    </span>
+                  </div>
+                  <textarea 
+                    value={description}
+                    onChange={handleDescriptionChange}
+                    maxLength={200}
+                    className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all min-h-[80px] resize-none text-sm font-sans" 
+                    placeholder="1-2 lines summarizing the project's core value (max 200 chars)..."
+                  ></textarea>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-300">Category</label>
                   <div className="relative">
-                    <select className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple transition-colors appearance-none cursor-pointer">
-                      <option value="" disabled selected>Select category</option>
+                    <select 
+                      value={category}
+                      onChange={e => setCategory(e.target.value)}
+                      required
+                      className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple transition-colors appearance-none cursor-pointer text-sm font-sans"
+                    >
+                      <option value="" disabled>Select category</option>
+                      <option value="Gateway">Gateway</option>
+                      <option value="Off-ramp">Off-ramp</option>
                       <option value="Payments">Payments</option>
                       <option value="DeFi">DeFi</option>
                       <option value="Gaming">Gaming</option>
+                      <option value="Social Commerce">Social Commerce</option>
+                      <option value="Creator Economy">Creator Economy</option>
                       <option value="Infrastructure">Infrastructure</option>
+                      <option value="Security">Security</option>
+                      <option value="Analytics">Analytics</option>
+                      <option value="AI+Crypto">AI+Crypto</option>
                       <option value="RWA">RWA</option>
-                      <option value="Prediction Markets">Prediction Markets</option>
+                      <option value="Education">Education</option>
+                      <option value="Other">Other</option>
                     </select>
                     <ChevronRight size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 rotate-90 pointer-events-none" />
                   </div>
@@ -1036,8 +1212,12 @@ function SubmitProjectView({ onClose }: { key?: React.Key; onClose: () => void }
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-300">Status</label>
                   <div className="relative">
-                    <select className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple transition-colors appearance-none cursor-pointer">
-                      <option value="" disabled selected>Select status</option>
+                    <select 
+                      value={status}
+                      onChange={e => setStatus(e.target.value)}
+                      required
+                      className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple transition-colors appearance-none cursor-pointer text-sm font-sans"
+                    >
                       <option value="Live">Live</option>
                       <option value="Beta">Beta</option>
                       <option value="Coming Soon">Coming Soon</option>
@@ -1055,14 +1235,21 @@ function SubmitProjectView({ onClose }: { key?: React.Key; onClose: () => void }
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-300">Country</label>
                   <div className="relative">
-                    <select className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple transition-colors appearance-none cursor-pointer">
-                      <option value="" disabled selected>Select African country</option>
+                    <select 
+                      value={country}
+                      onChange={e => setCountry(e.target.value)}
+                      className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple transition-colors appearance-none cursor-pointer text-sm font-sans"
+                    >
+                      <option value="" disabled>Select African country</option>
                       <option value="Nigeria">Nigeria</option>
                       <option value="Kenya">Kenya</option>
                       <option value="South Africa">South Africa</option>
                       <option value="Ghana">Ghana</option>
                       <option value="Rwanda">Rwanda</option>
                       <option value="Egypt">Egypt</option>
+                      <option value="Uganda">Uganda</option>
+                      <option value="Tanzania">Tanzania</option>
+                      <option value="Ethiopia">Ethiopia</option>
                       <option value="Other">Other</option>
                     </select>
                     <Globe2 size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
@@ -1077,15 +1264,34 @@ function SubmitProjectView({ onClose }: { key?: React.Key; onClose: () => void }
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">Website URL</label>
-                  <input type="url" className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all" placeholder="https://" />
+                  <input 
+                    type="url" 
+                    value={website}
+                    onChange={e => setWebsite(e.target.value)}
+                    className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all text-sm font-sans" 
+                    placeholder="https://" 
+                  />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">Twitter/X Link</label>
-                  <input type="url" className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all" placeholder="https://x.com/..." />
+                  <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">Twitter/X Link <span className="text-rose-400">*</span></label>
+                  <input 
+                    type="url" 
+                    value={xLink}
+                    onChange={e => setXLink(e.target.value)}
+                    required
+                    className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all text-sm font-sans" 
+                    placeholder="https://x.com/..." 
+                  />
                 </div>
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-semibold text-slate-300 line-clamp-1 flex items-center gap-2">Documentation Link <span className="text-slate-500 font-normal">(Optional)</span></label>
-                  <input type="url" className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all" placeholder="https://" />
+                  <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">GitHub URL</label>
+                  <input 
+                    type="url" 
+                    value={githubUrl}
+                    onChange={e => setGithubUrl(e.target.value)}
+                    className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all text-sm font-sans" 
+                    placeholder="https://github.com/..." 
+                  />
                 </div>
               </div>
             </div>
@@ -1094,74 +1300,120 @@ function SubmitProjectView({ onClose }: { key?: React.Key; onClose: () => void }
             <div>
               <div className="mb-6 border-b border-white/5 pb-3 flex items-center justify-between">
                  <h3 className="text-lg font-bold text-white">4. Solana Integration</h3>
-                 <span className="bg-brand-purple/20 text-brand-purple text-[10px] px-2 py-1 tracking-widest rounded uppercase font-bold border border-brand-purple/30">Important</span>
+                 <span className="bg-brand-purple/20 text-brand-purple text-[10px] px-2 py-1 tracking-widest rounded uppercase font-bold border border-brand-purple/30">On-Chain</span>
               </div>
-              <div className="grid grid-cols-1 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-300">Contract Address(es)</label>
-                  <textarea className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all min-h-[80px] font-mono text-sm resize-none" placeholder="Paste Solana program IDs..."></textarea>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-semibold text-slate-300">Solana Program Address</label>
+                  <input 
+                    type="text" 
+                    value={programAddress}
+                    onChange={e => setProgramAddress(e.target.value)}
+                    className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all text-sm font-mono" 
+                    placeholder="Paste Solana program ID..." 
+                  />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-300">How does the product use Solana?</label>
-                  <textarea className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all min-h-[100px] resize-none" placeholder="e.g., We use Solana for instant cross-border stablecoin settlement..."></textarea>
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-semibold text-slate-300">Wallet Address</label>
+                  <input 
+                    type="text" 
+                    value={walletAddress}
+                    onChange={e => setWalletAddress(e.target.value)}
+                    className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all text-sm font-mono" 
+                    placeholder="e.g. Creator / project wallet address..." 
+                  />
                 </div>
               </div>
             </div>
 
-            {/* Section 5: Metrics */}
+            {/* Section 5: Team Info */}
             <div>
-              <h3 className="text-lg font-bold text-white mb-6 border-b border-white/5 pb-3 flex items-center gap-2">5. Metrics <span className="text-slate-500 font-normal text-sm">(Optional but encouraged)</span></h3>
+              <h3 className="text-lg font-bold text-white mb-6 border-b border-white/5 pb-3">5. Team Info</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-300">Estimated Active Users</label>
-                  <input type="number" className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all font-mono" placeholder="e.g., 5000" />
+                  <label className="text-sm font-semibold text-slate-300">Team Lead Name <span className="text-rose-400">*</span></label>
+                  <input 
+                    type="text" 
+                    value={teamLeadName}
+                    onChange={e => setTeamLeadName(e.target.value)}
+                    required
+                    className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all text-sm font-sans" 
+                    placeholder="e.g. Jane Doe" 
+                  />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-300">Estimated Tx Volume (USD)</label>
-                  <input type="number" className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all font-mono" placeholder="e.g., 100000" />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-semibold text-slate-300">Stage of Growth</label>
-                  <div className="relative">
-                    <select className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple transition-colors appearance-none cursor-pointer">
-                      <option value="" disabled selected>Select growth stage</option>
-                      <option value="Idea/Pre-product">Idea / Pre-product</option>
-                      <option value="Early Traction (<1k users)">Early Traction (&lt;1k users)</option>
-                      <option value="Scaling (1k - 10k users)">Scaling (1k - 10k users)</option>
-                      <option value="Growth (10k+ users)">Growth (10k+ users)</option>
-                    </select>
-                    <ChevronRight size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 rotate-90 pointer-events-none" />
-                  </div>
+                  <label className="text-sm font-semibold text-slate-300">Team Lead Twitter (X Link)</label>
+                  <input 
+                    type="url" 
+                    value={teamLeadTwitter}
+                    onChange={e => setTeamLeadTwitter(e.target.value)}
+                    className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all text-sm font-sans" 
+                    placeholder="https://x.com/..." 
+                  />
                 </div>
               </div>
             </div>
 
             {/* Section 6: Verification */}
             <div>
-              <h3 className="text-lg font-bold text-white mb-6 border-b border-white/5 pb-3">6. Verification</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4 md:col-span-2">
-                  <label className="text-sm font-semibold text-slate-300 block">Is the project open-source?</label>
-                  <div className="flex gap-6">
-                    <label className="flex items-center gap-3 cursor-pointer group">
-                      <div className="w-5 h-5 rounded-full border border-white/20 bg-[#0a0a0f] flex items-center justify-center group-hover:border-brand-purple transition-colors">
-                        <input type="radio" name="opensource" className="hidden peer" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-brand-purple scale-0 peer-checked:scale-100 transition-transform" />
-                      </div>
-                      <span className="text-white">Yes</span>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-pointer group">
-                      <div className="w-5 h-5 rounded-full border border-white/20 bg-[#0a0a0f] flex items-center justify-center group-hover:border-brand-purple transition-colors">
-                        <input type="radio" name="opensource" className="hidden peer" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-brand-purple scale-0 peer-checked:scale-100 transition-transform" />
-                      </div>
-                      <span className="text-white">No</span>
-                    </label>
+              <h3 className="text-lg font-bold text-white mb-6 border-b border-white/5 pb-3">6. Verification & Trust</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Doxxed Toggle */}
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-slate-300 block">Is your team doxxed?</label>
+                  <div className="flex gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setIsDoxxed(true)}
+                      className={`flex-1 px-6 py-2.5 rounded-xl border text-sm font-semibold transition-all cursor-pointer ${
+                        isDoxxed
+                          ? 'bg-brand-purple/20 border-brand-purple text-white shadow-[0_0_15px_rgba(153,69,255,0.2)]'
+                          : 'bg-black/40 border-white/10 text-zinc-400 hover:text-white hover:border-white/20'
+                      }`}
+                    >
+                      Yes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsDoxxed(false)}
+                      className={`flex-1 px-6 py-2.5 rounded-xl border text-sm font-semibold transition-all cursor-pointer ${
+                        !isDoxxed
+                          ? 'bg-brand-purple/20 border-brand-purple text-white shadow-[0_0_15px_rgba(153,69,255,0.2)]'
+                          : 'bg-black/40 border-white/10 text-zinc-400 hover:text-white hover:border-white/20'
+                      }`}
+                    >
+                      No
+                    </button>
                   </div>
                 </div>
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">GitHub Link <span className="text-slate-500 font-normal">(If available)</span></label>
-                  <input type="url" className="w-full bg-[#0a0a0f] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-purple focus:bg-[#0f0f16] transition-all" placeholder="https://github.com/..." />
+
+                {/* Audited Toggle */}
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-slate-300 block">Has your project been audited?</label>
+                  <div className="flex gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setHasAudit(true)}
+                      className={`flex-1 px-6 py-2.5 rounded-xl border text-sm font-semibold transition-all cursor-pointer ${
+                        hasAudit
+                          ? 'bg-brand-purple/20 border-brand-purple text-white shadow-[0_0_15px_rgba(153,69,255,0.2)]'
+                          : 'bg-black/40 border-white/10 text-zinc-400 hover:text-white hover:border-white/20'
+                      }`}
+                    >
+                      Yes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setHasAudit(false)}
+                      className={`flex-1 px-6 py-2.5 rounded-xl border text-sm font-semibold transition-all cursor-pointer ${
+                        !hasAudit
+                          ? 'bg-brand-purple/20 border-brand-purple text-white shadow-[0_0_15px_rgba(153,69,255,0.2)]'
+                          : 'bg-black/40 border-white/10 text-zinc-400 hover:text-white hover:border-white/20'
+                      }`}
+                    >
+                      No
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1177,7 +1429,17 @@ function SubmitProjectView({ onClose }: { key?: React.Key; onClose: () => void }
               </div>
             </div>
 
-            <button className="btn-white w-full py-4 text-base font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]">Submit for Review</button>
+            <button 
+              type="submit"
+              disabled={loading}
+              className="btn-white w-full py-4 text-base font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] cursor-pointer flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed animate-glow"
+            >
+              {loading ? (
+                <Loader2 className="animate-spin" size={20} />
+              ) : (
+                'Submit for Review'
+              )}
+            </button>
             <p className="text-center text-xs text-slate-500 mt-4">We typically review submissions within 24–48 hours</p>
           </div>
         </form>
