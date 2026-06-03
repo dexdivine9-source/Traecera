@@ -1,5 +1,5 @@
 # TRÆCERA 🌍🟣
-**Live App**: [https://tr-cera.vercel.app/](https://tr-cera.vercel.app/) 
+**Live App**: https://traecera.vercel.app
 **Track the Rise of Solana in Africa.**
 
 TRÆCERA is Africa's first intelligence layer for discovering, 
@@ -206,8 +206,8 @@ Currently indexing projects from:
 
 Built by African founders for the African ecosystem.
 
-- **Founder & Developer**: @MaskilSOL
-- **Co-Founder**: @callmeFeyi_
+- **Founder**: @MaskilSOL
+- **Co-Founder & Developer**: @dex_divine
 
 ---
 
