@@ -16,6 +16,8 @@ import {
   Layers,
   X,
   Flame,
+  Building2,
+  Rocket,
 } from 'lucide-react';
 import type { Project } from '../data/projects';
 import { motion, AnimatePresence } from 'motion/react';
@@ -47,7 +49,7 @@ interface SidebarProps {
   onToggleCollapse: () => void;
   mobileOpen: boolean;
   onMobileClose: () => void;
-  onNavigate: (view: 'home' | 'leaderboard') => void;
+  onNavigate: (view: 'home' | 'leaderboard' | 'institutional' | 'innovation') => void;
   activeView: string;
   onSignup: () => void;
 }
@@ -122,6 +124,8 @@ export default function Sidebar({
     { id: 'home', label: 'Home', icon: <Home size={CATEGORY_ICON_SIZE} />, action: () => onNavigate('home') },
     { id: 'leaderboard', label: 'Explore', icon: <Compass size={CATEGORY_ICON_SIZE} />, action: () => onNavigate('leaderboard') },
     { id: 'rankings', label: 'Rankings', icon: <Trophy size={CATEGORY_ICON_SIZE} />, action: () => onNavigate('leaderboard') },
+    { id: 'institutional', label: 'Institutional', icon: <Building2 size={CATEGORY_ICON_SIZE} />, action: () => onNavigate('institutional') },
+    { id: 'innovation', label: 'Innovation', icon: <Rocket size={CATEGORY_ICON_SIZE} />, action: () => onNavigate('innovation') },
   ];
 
   const sidebarContent = (

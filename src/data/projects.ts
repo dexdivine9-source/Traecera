@@ -6,6 +6,8 @@ export interface ProjectMetrics {
   volume_24h?: number;
 }
 
+export type DirectoryTier = "institutional" | "innovation";
+
 export interface Project {
   id: string;
   name: string;
@@ -26,6 +28,22 @@ export interface Project {
     activity: number;
   };
   last_updated: string;
+
+  // ── Two-Tier Ecosystem Registry ──
+  /** Which directory a project belongs to. DB default is "innovation"; admins promote to "institutional". */
+  directory_tier: DirectoryTier;
+  /** Institutional tier: how the project uses Solana (nullable in DB → undefined here). */
+  solana_use_case?: string;
+  /** Innovation tier: funding maturity (bootstrap | grant | pre-seed | seed | vc-backed | unknown). */
+  funding_stage?: string;
+  /** Institutional trust signal: holds a financial/regulatory license. */
+  is_licensed?: boolean;
+
+  // ── Supporting DB columns surfaced for the registry views (real columns, not derived) ──
+  /** External website URL — surfaced as the "Website link" in the institutional directory. */
+  website?: string;
+  /** Curation state set by the admin approval flow: pending | verified | rejected. */
+  verification_status?: string;
 }
 
 function num(v: unknown): number {
@@ -62,6 +80,10 @@ export function mapSupabaseProjectRow(row: Record<string, unknown>): Project {
     status = statusRaw;
   }
 
+  // Tier defaults to "innovation" (matches DB default); only "institutional" flips it.
+  const directory_tier: DirectoryTier =
+    row.directory_tier === "institutional" ? "institutional" : "innovation";
+
   return {
     id,
     name: typeof row.name === "string" ? row.name : "Untitled",
@@ -89,5 +111,25 @@ export function mapSupabaseProjectRow(row: Record<string, unknown>): Project {
           : typeof row.created_at === "string"
             ? row.created_at
             : new Date().toISOString(),
+
+    // ── Two-Tier Ecosystem Registry (truthful passthrough; missing → undefined) ──
+    directory_tier,
+    solana_use_case:
+      typeof row.solana_use_case === "string" && row.solana_use_case.trim() !== ""
+        ? row.solana_use_case
+        : undefined,
+    funding_stage:
+      typeof row.funding_stage === "string" && row.funding_stage.trim() !== ""
+        ? row.funding_stage
+        : undefined,
+    is_licensed: typeof row.is_licensed === "boolean" ? row.is_licensed : undefined,
+    website:
+      typeof row.website === "string" && row.website.trim() !== ""
+        ? row.website
+        : undefined,
+    verification_status:
+      typeof row.verification_status === "string" && row.verification_status.trim() !== ""
+        ? row.verification_status
+        : undefined,
   };
 }

@@ -19,10 +19,13 @@ import {
   Menu,
   Fingerprint,
   AlertCircle,
-  Loader2
+  Loader2,
+  Building2,
+  Rocket
 } from 'lucide-react';
 import ProjectLogo from '@/components/ProjectLogo';
 import { Project } from './data/projects';
+import TierBadge from './components/TierBadge';
 import { motion, AnimatePresence } from 'motion/react';
 import Sidebar from './components/Sidebar';
 import { MethodologySection } from './components/MethodologySection';
@@ -35,12 +38,14 @@ export function getScoreBadgeColor(score: number | undefined) {
   if (score >= 40) return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
   return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
 }
-type ViewState = 
+type ViewState =
   | { name: 'home' }
   | { name: 'leaderboard' }
   | { name: 'project', id: string }
   | { name: 'signup' }
-  | { name: 'submit' };
+  | { name: 'submit' }
+  | { name: 'institutional' }
+  | { name: 'innovation' };
 
 // -----------------------------------------
 // Custom Logo Icon (Isometric Cube)
@@ -64,9 +69,13 @@ export default function App({ initialProjects }: { initialProjects: Project[] })
   const goProject = (id: string) => setView({ name: 'project', id });
   const goSignup = () => setView({ name: 'signup' });
   const goSubmit = () => setView({ name: 'submit' });
+  const goInstitutional = () => setView({ name: 'institutional' });
+  const goInnovation = () => setView({ name: 'innovation' });
 
-  const handleSidebarNavigate = (target: 'home' | 'leaderboard') => {
+  const handleSidebarNavigate = (target: 'home' | 'leaderboard' | 'institutional' | 'innovation') => {
     if (target === 'home') goHome();
+    else if (target === 'institutional') goInstitutional();
+    else if (target === 'innovation') goInnovation();
     else goLeaderboard();
   };
 
@@ -90,13 +99,35 @@ export default function App({ initialProjects }: { initialProjects: Project[] })
       <main className="app-main-content selection:bg-[#14F195]/30">
         <AnimatePresence mode="wait">
           {view.name === 'home' && (
-            <HomeView 
-              key="home" 
+            <HomeView
+              key="home"
               projects={projects}
-              onExplore={goLeaderboard} 
-              onProjectClick={goProject} 
-              onSignup={goSignup} 
-              onSubmit={goSubmit} 
+              onExplore={goLeaderboard}
+              onProjectClick={goProject}
+              onSignup={goSignup}
+              onSubmit={goSubmit}
+              onOpenMenu={() => setMobileOpen(true)}
+              onInstitutional={goInstitutional}
+              onInnovation={goInnovation}
+            />
+          )}
+          {view.name === 'institutional' && (
+            <InstitutionalDirectoryView
+              key="institutional"
+              projects={projects}
+              onHome={goHome}
+              onProjectClick={goProject}
+              onSubmit={goSubmit}
+              onOpenMenu={() => setMobileOpen(true)}
+            />
+          )}
+          {view.name === 'innovation' && (
+            <InnovationDirectoryView
+              key="innovation"
+              projects={projects}
+              onHome={goHome}
+              onProjectClick={goProject}
+              onSubmit={goSubmit}
               onOpenMenu={() => setMobileOpen(true)}
             />
           )}
@@ -198,7 +229,7 @@ function SignupView({ onClose }: { key?: React.Key; onClose: () => void }) {
 // -----------------------------------------
 // Home View
 // -----------------------------------------
-function HomeView({ projects, onExplore, onProjectClick, onSignup, onSubmit, onOpenMenu }: { projects: Project[]; key?: React.Key; onExplore: () => void; onProjectClick: (id: string) => void; onSignup: () => void; onSubmit: () => void; onOpenMenu: () => void }) {
+function HomeView({ projects, onExplore, onProjectClick, onSignup, onSubmit, onOpenMenu, onInstitutional, onInnovation }: { projects: Project[]; key?: React.Key; onExplore: () => void; onProjectClick: (id: string) => void; onSignup: () => void; onSubmit: () => void; onOpenMenu: () => void; onInstitutional: () => void; onInnovation: () => void }) {
   const topProjects = [...projects]
     .sort((a, b) => {
       const scoreA = a.traecera_score ?? 0;
@@ -249,11 +280,46 @@ function HomeView({ projects, onExplore, onProjectClick, onSignup, onSubmit, onO
           <button className="btn-white flex items-center justify-center gap-2" onClick={onExplore}>
              Explore Rankings <ArrowRight size={18} className="text-black" />
           </button>
-          <button 
+          <button
              className="btn-secondary flex items-center justify-center px-8 text-base"
              onClick={() => document.getElementById('methodology')?.scrollIntoView({ behavior: 'smooth' })}
           >
              View Methodology
+          </button>
+        </div>
+
+        {/* Two-Tier Ecosystem Registry entry points */}
+        <div className="flex flex-col sm:flex-row items-stretch justify-center gap-4 mt-6 max-w-2xl mx-auto">
+          <button
+            onClick={onInstitutional}
+            className="group glass-card flex-1 flex items-center justify-between gap-4 !py-4 !px-6 text-left hover:border-amber-400/30 transition-colors cursor-pointer"
+          >
+            <span className="flex items-center gap-3">
+              <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-400/10 text-amber-300 border border-amber-400/25 shrink-0">
+                <Building2 size={20} />
+              </span>
+              <span className="flex flex-col">
+                <span className="font-semibold text-white leading-tight">Institutional Directory</span>
+                <span className="text-xs text-slate-400">Licensed & regulated operators</span>
+              </span>
+            </span>
+            <ArrowRight size={18} className="text-slate-500 group-hover:text-amber-300 group-hover:translate-x-0.5 transition-all shrink-0" />
+          </button>
+
+          <button
+            onClick={onInnovation}
+            className="group glass-card flex-1 flex items-center justify-between gap-4 !py-4 !px-6 text-left hover:border-[#9945FF]/40 transition-colors cursor-pointer"
+          >
+            <span className="flex items-center gap-3">
+              <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#9945FF]/10 text-[#9945FF] border border-[#9945FF]/25 shrink-0">
+                <Rocket size={20} />
+              </span>
+              <span className="flex flex-col">
+                <span className="font-semibold text-white leading-tight">Innovation Directory</span>
+                <span className="text-xs text-slate-400">Emerging builders & startups</span>
+              </span>
+            </span>
+            <ArrowRight size={18} className="text-slate-500 group-hover:text-[#9945FF] group-hover:translate-x-0.5 transition-all shrink-0" />
           </button>
         </div>
       </section>
@@ -627,8 +693,9 @@ function ProjectDetailView({ projects, projectId, onBack, onHome, onSubmit, onOp
                   {isVerified && <ShieldCheck size={28} className="text-blue-400 fill-blue-400/10" />}
                 </h1>
                 <div className="flex flex-wrap items-center gap-3">
+                  <TierBadge tier={project.directory_tier} />
                   <span className={`badge ${
-                    project.status === 'Live' ? 'badge-live' : 
+                    project.status === 'Live' ? 'badge-live' :
                     project.status === 'Beta' ? 'badge-beta' : 'badge-coming-soon'
                   }`}>
                     {project.status}
@@ -663,6 +730,66 @@ function ProjectDetailView({ projects, projectId, onBack, onHome, onSubmit, onOp
         <p className="text-body-large max-w-3xl mb-12">
           {project.description}
         </p>
+
+        {/* Two-Tier Ecosystem Registry strip */}
+        <div className="glass-card p-6 mb-12">
+          <div className="flex items-center gap-2 mb-5">
+            <TierBadge tier={project.directory_tier} />
+            <span className="text-xs font-mono uppercase tracking-wider text-slate-500">Registry Profile</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {project.directory_tier === 'institutional' ? (
+              <>
+                <div>
+                  <div className="text-xs text-slate-400 font-mono uppercase tracking-wider mb-1.5">Solana Use Case</div>
+                  <div className="text-sm font-semibold text-white">
+                    {project.solana_use_case ?? <span className="text-slate-500">—</span>}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-slate-400 font-mono uppercase tracking-wider mb-1.5">Licensed</div>
+                  <div className="text-sm font-semibold">
+                    {project.is_licensed === undefined ? (
+                      <span className="text-slate-500">—</span>
+                    ) : project.is_licensed ? (
+                      <span className="inline-flex items-center gap-1.5 text-emerald-400"><ShieldCheck size={15} /> Yes</span>
+                    ) : (
+                      <span className="text-slate-300">No</span>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div>
+                <div className="text-xs text-slate-400 font-mono uppercase tracking-wider mb-1.5">Funding Stage</div>
+                <div className="text-sm font-semibold text-white capitalize">
+                  {project.funding_stage ? project.funding_stage.replace(/-/g, ' ') : <span className="text-slate-500">—</span>}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <div className="text-xs text-slate-400 font-mono uppercase tracking-wider mb-1.5">Verification</div>
+              <div className="text-sm font-semibold text-white capitalize">
+                {project.verification_status ?? <span className="text-slate-500">—</span>}
+              </div>
+            </div>
+
+            {project.website && (
+              <div>
+                <div className="text-xs text-slate-400 font-mono uppercase tracking-wider mb-1.5">Website</div>
+                <a
+                  href={project.website}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm font-semibold text-brand-purple hover:text-brand-pink transition-colors inline-flex items-center gap-1.5"
+                >
+                  Visit <ExternalLink size={14} />
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Metrics Dashboard */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
@@ -844,23 +971,372 @@ function ProjectDetailView({ projects, projectId, onBack, onHome, onSubmit, onOp
 }
 
 // -----------------------------------------
+// Registry helpers (Two-Tier Ecosystem)
+// -----------------------------------------
+function VerificationBadge({ status }: { status?: string }) {
+  if (!status) return <span className="text-slate-500 font-mono text-sm">—</span>;
+  const s = status.toLowerCase();
+  if (s === 'verified') {
+    return (
+      <span className="badge gap-1.5 bg-emerald-500/10 text-emerald-400 border-emerald-500/25">
+        <ShieldCheck size={12} /> Verified
+      </span>
+    );
+  }
+  if (s === 'rejected') {
+    return (
+      <span className="badge gap-1.5 bg-rose-500/10 text-rose-400 border-rose-500/25">
+        <AlertCircle size={12} /> Rejected
+      </span>
+    );
+  }
+  // pending / anything else
+  return (
+    <span className="badge gap-1.5 bg-amber-500/10 text-amber-400 border-amber-500/25">
+      <Fingerprint size={12} /> {status}
+    </span>
+  );
+}
+
+function DirectoryHeader({
+  eyebrowIcon,
+  eyebrow,
+  title,
+  subtitle,
+  count,
+  accent,
+  onHome,
+  onOpenMenu,
+}: {
+  eyebrowIcon: React.ReactNode;
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  count: number;
+  accent: 'amber' | 'purple';
+  onHome: () => void;
+  onOpenMenu: () => void;
+}) {
+  const chip =
+    accent === 'amber'
+      ? 'bg-amber-400/10 text-amber-300 border-amber-400/25'
+      : 'bg-[#9945FF]/10 text-[#9945FF] border-[#9945FF]/25';
+  return (
+    <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
+      <div>
+        <button onClick={onHome} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm font-semibold mb-4 cursor-pointer">
+          <ArrowLeft size={16} /> Back to Overview
+        </button>
+        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border mb-4 text-xs font-mono font-bold uppercase tracking-widest ${chip}`}>
+          {eyebrowIcon} {eyebrow}
+        </div>
+        <h1 className="text-heading-2 text-white mb-2">{title}</h1>
+        <p className="text-body max-w-2xl">{subtitle}</p>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="text-mono-small text-slate-400 font-bold glass-card !py-2 !px-4 !rounded-full border-[rgba(255,255,255,0.08)]">
+          {count} {count === 1 ? 'Project' : 'Projects'}
+        </span>
+        <button
+          className="sidebar-mobile-trigger flex lg:hidden items-center justify-center"
+          onClick={onOpenMenu}
+          aria-label="Open navigation"
+        >
+          <Menu size={20} />
+        </button>
+      </div>
+    </header>
+  );
+}
+
+// -----------------------------------------
+// Institutional Directory View (Step 5)
+// -----------------------------------------
+function InstitutionalDirectoryView({ projects, onHome, onProjectClick, onSubmit, onOpenMenu }: { projects: Project[]; key?: React.Key; onHome: () => void; onProjectClick: (id: string) => void; onSubmit: () => void; onOpenMenu: () => void }) {
+  const [search, setSearch] = useState('');
+
+  const data = useMemo(() => {
+    return projects
+      .filter(p => p.directory_tier === 'institutional')
+      .filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.country.toLowerCase().includes(search.toLowerCase()))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [projects, search]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="w-full h-full min-h-[100dvh] bg-[#0a0a0f] overflow-y-auto overflow-x-hidden pb-12"
+    >
+      <div className="max-w-6xl mx-auto px-6 py-10">
+        <DirectoryHeader
+          eyebrowIcon={<Building2 size={12} />}
+          eyebrow="Institutional Tier"
+          title="Institutional Directory"
+          subtitle="Licensed and regulated operators anchoring the African Solana economy — curated by the Træcera team."
+          count={data.length}
+          accent="amber"
+          onHome={onHome}
+          onOpenMenu={onOpenMenu}
+        />
+
+        {/* Search */}
+        <div className="flex justify-end mb-6">
+          <div className="relative glass-card !py-2 !px-4 !rounded-full flex items-center border-[rgba(255,255,255,0.08)]">
+            <Search size={16} className="text-slate-400 mr-2 shrink-0" />
+            <input
+              type="text"
+              placeholder="Search institutions..."
+              className="bg-transparent border-none outline-none text-sm w-40 focus:w-56 transition-all text-white placeholder-slate-500"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {data.length === 0 ? (
+          <div className="glass-card py-20 text-center flex flex-col items-center justify-center">
+            <Building2 className="text-slate-600 mb-4" size={32} />
+            <p className="text-body mb-1">No institutional projects yet.</p>
+            <p className="text-sm text-slate-500 max-w-md">
+              {search
+                ? 'No institutions match your search.'
+                : 'Institutional-tier operators are curated by the Træcera team and will appear here once classified.'}
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto pb-4">
+            <table className="table-glass min-w-[820px]">
+              <thead>
+                <tr>
+                  <th>Institution</th>
+                  <th>Solana Use Case</th>
+                  <th>Verification</th>
+                  <th className="text-right">Website</th>
+                </tr>
+              </thead>
+              <tbody>
+                <AnimatePresence>
+                  {data.map((project, idx) => (
+                    <motion.tr
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2, delay: idx > 10 ? 0 : idx * 0.05 }}
+                      key={project.id}
+                      onClick={() => onProjectClick(project.id)}
+                      className="row-glass cursor-pointer"
+                    >
+                      <td>
+                        <div className="flex items-center gap-4">
+                          <div className="flex-shrink-0">
+                            <ProjectLogo src={project.logo} name={project.name} category={project.category} width={48} height={48} className="rounded-xl border border-white/5" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-white mb-1 leading-tight">{project.name}</div>
+                            <div className="flex items-center gap-1.5 text-slate-400 text-sm">
+                              <Globe2 size={14} /> {project.country || <span className="text-slate-500">—</span>}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="text-slate-300 text-sm">
+                          {project.solana_use_case ?? <span className="text-slate-500 font-mono">—</span>}
+                        </span>
+                      </td>
+                      <td>
+                        <VerificationBadge status={project.verification_status} />
+                      </td>
+                      <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                        {project.website ? (
+                          <a
+                            href={project.website}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 text-brand-purple hover:text-brand-pink transition-colors text-sm font-semibold"
+                          >
+                            Visit <ExternalLink size={14} />
+                          </a>
+                        ) : (
+                          <span className="text-slate-500 font-mono">—</span>
+                        )}
+                      </td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <SubmissionCTA onSubmit={onSubmit} />
+      <Footer />
+    </motion.div>
+  );
+}
+
+// -----------------------------------------
+// Innovation Directory View (Step 6)
+// -----------------------------------------
+function InnovationDirectoryView({ projects, onHome, onProjectClick, onSubmit, onOpenMenu }: { projects: Project[]; key?: React.Key; onHome: () => void; onProjectClick: (id: string) => void; onSubmit: () => void; onOpenMenu: () => void }) {
+  const [search, setSearch] = useState('');
+
+  const data = useMemo(() => {
+    return projects
+      .filter(p => p.directory_tier === 'innovation')
+      .filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase()))
+      .sort((a, b) => {
+        const scoreA = a.traecera_score ?? 0;
+        const scoreB = b.traecera_score ?? 0;
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        return b.trending_score - a.trending_score;
+      });
+  }, [projects, search]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="w-full h-full min-h-[100dvh] bg-[#0a0a0f] overflow-y-auto overflow-x-hidden pb-12"
+    >
+      <div className="max-w-6xl mx-auto px-6 py-10">
+        <DirectoryHeader
+          eyebrowIcon={<Rocket size={12} />}
+          eyebrow="Innovation Tier"
+          title="Innovation Directory"
+          subtitle="Emerging builders and early-stage startups pushing the frontier of Solana in Africa."
+          count={data.length}
+          accent="purple"
+          onHome={onHome}
+          onOpenMenu={onOpenMenu}
+        />
+
+        {/* Search */}
+        <div className="flex justify-end mb-6">
+          <div className="relative glass-card !py-2 !px-4 !rounded-full flex items-center border-[rgba(255,255,255,0.08)]">
+            <Search size={16} className="text-slate-400 mr-2 shrink-0" />
+            <input
+              type="text"
+              placeholder="Search builders..."
+              className="bg-transparent border-none outline-none text-sm w-40 focus:w-56 transition-all text-white placeholder-slate-500"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {data.length === 0 ? (
+          <div className="glass-card py-20 text-center flex flex-col items-center justify-center">
+            <Rocket className="text-slate-600 mb-4" size={32} />
+            <p className="text-body mb-1">No innovation projects yet.</p>
+            <p className="text-sm text-slate-500 max-w-md">
+              {search ? 'No builders match your search.' : 'Innovation-tier projects will appear here as they are indexed.'}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence>
+              {data.map((project, idx) => (
+                <motion.div
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2, delay: idx > 10 ? 0 : idx * 0.05 }}
+                  key={project.id}
+                >
+                  <InnovationCard project={project} onClick={() => onProjectClick(project.id)} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+
+      <SubmissionCTA onSubmit={onSubmit} />
+      <Footer />
+    </motion.div>
+  );
+}
+
+// -----------------------------------------
+// Innovation Card (Step 6 — tier-specific)
+// -----------------------------------------
+function InnovationCard({ project, onClick }: { project: Project; onClick: () => void; key?: React.Key }) {
+  return (
+    <div className="glass-card p-6 flex flex-col h-full group cursor-pointer" onClick={onClick}>
+      <div className="flex justify-between items-start mb-6">
+        <div className="flex-shrink-0 relative">
+          <ProjectLogo
+            src={project.logo}
+            name={project.name}
+            category={project.category}
+            width={56}
+            height={56}
+            className="rounded-xl group-hover:-translate-y-1 transition-transform border border-white/5"
+          />
+        </div>
+        {project.traecera_score !== undefined ? (
+          <span className={`px-2 py-0.5 rounded text-xs font-bold border ${getScoreBadgeColor(project.traecera_score)}`}>
+            {project.traecera_score.toFixed(1)}
+          </span>
+        ) : (
+          <span className="px-2 py-0.5 rounded text-xs font-bold border bg-slate-500/10 text-slate-400 border-slate-500/20">—</span>
+        )}
+      </div>
+
+      <h3 className="text-heading-3 text-white mb-1">{project.name}</h3>
+      <div className="text-sm text-slate-400 mb-6">{project.category}</div>
+
+      <div className="mt-auto pt-4 border-t border-[rgba(255,255,255,0.05)] flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Funding</span>
+          {project.funding_stage ? (
+            <span className="badge gap-1.5 bg-[#9945FF]/10 text-[#9945FF] border-[#9945FF]/25 capitalize">
+              {project.funding_stage.replace(/-/g, ' ')}
+            </span>
+          ) : (
+            <span className="text-slate-500 font-mono text-sm">—</span>
+          )}
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Verification</span>
+          <VerificationBadge status={project.verification_status} />
+        </div>
+        <button
+          className="text-xs font-semibold text-brand-purple hover:text-brand-pink transition-colors flex items-center gap-1 self-end"
+          onClick={(e) => { e.stopPropagation(); onClick(); }}
+        >
+          View Details <ChevronRight size={14} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// -----------------------------------------
 // Project Card (Reusable Component)
 // -----------------------------------------
 export function ProjectCard({ project, onClick, verified }: { project: Project; onClick: () => void; verified?: boolean; key?: React.Key }) {
   return (
-    <div 
+    <div
       className="glass-card p-6 flex flex-col h-full group cursor-pointer"
       onClick={onClick}
     >
       <div className="flex justify-between items-start mb-6">
         <div className="flex-shrink-0 relative">
-          <ProjectLogo 
-            src={project.logo} 
-            name={project.name} 
-            category={project.category} 
-            width={56} 
-            height={56} 
-            className="rounded-xl group-hover:-translate-y-1 transition-transform border border-white/5" 
+          <ProjectLogo
+            src={project.logo}
+            name={project.name}
+            category={project.category}
+            width={56}
+            height={56}
+            className="rounded-xl group-hover:-translate-y-1 transition-transform border border-white/5"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -870,14 +1346,14 @@ export function ProjectCard({ project, onClick, verified }: { project: Project; 
             </span>
           )}
           <span className={`badge shrink-0 ${
-            project.status === 'Live' ? 'badge-live' : 
+            project.status === 'Live' ? 'badge-live' :
             project.status === 'Beta' ? 'badge-beta' : 'badge-coming-soon'
           }`}>
             {project.status}
           </span>
         </div>
       </div>
-      
+
       <h3 className="text-heading-3 text-white mb-2 flex items-center gap-2">
         {project.name}
         {verified && <ShieldCheck size={16} className="text-blue-400 fill-blue-400/10" />}
@@ -885,7 +1361,7 @@ export function ProjectCard({ project, onClick, verified }: { project: Project; 
       <p className="text-body text-sm line-clamp-2 mb-6 flex-1">
         {project.description}
       </p>
-      
+
       <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[rgba(255,255,255,0.05)] mb-6 mt-auto">
         <div>
           <div className="text-xs text-slate-400 font-mono uppercase tracking-wider mb-1">Users</div>
@@ -895,7 +1371,7 @@ export function ProjectCard({ project, onClick, verified }: { project: Project; 
           <div className="text-xs text-slate-400 font-mono uppercase tracking-wider mb-1">Growth</div>
           {project.metrics.growth_percent ? (
             <div className={`text-sm font-bold flex items-center gap-1 ${project.metrics.growth_percent >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-              {project.metrics.growth_percent >= 0 ? '+' : ''}{project.metrics.growth_percent}% 
+              {project.metrics.growth_percent >= 0 ? '+' : ''}{project.metrics.growth_percent}%
               <TrendingUp size={14} className={project.metrics.growth_percent < 0 ? 'rotate-180' : ''} />
             </div>
           ) : (
@@ -903,7 +1379,7 @@ export function ProjectCard({ project, onClick, verified }: { project: Project; 
           )}
         </div>
       </div>
-      
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Act:</span>
@@ -920,10 +1396,6 @@ export function ProjectCard({ project, onClick, verified }: { project: Project; 
     </div>
   );
 }
-
-// -----------------------------------------
-// Layout Components
-// -----------------------------------------
 
 function SubmissionCTA({ onSubmit }: { onSubmit: () => void }) {
   return (
