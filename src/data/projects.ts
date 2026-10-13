@@ -143,3 +143,29 @@ export function mapSupabaseProjectRow(row: Record<string, unknown>): Project {
         : undefined,
   };
 }
+
+/** Returns true if a project has non-empty about markdown copy. */
+export function hasAboutText(project: { about?: string | null }): boolean {
+  return typeof project.about === "string" && project.about.trim() !== "";
+}
+
+/**
+ * Ecosystem Rankings sort comparator:
+ * 1. Group 1: projects where `about` is not null and not an empty string always come first.
+ * 2. Group 2: all other projects follow below Group 1.
+ * 3. Inside each group, preserves the relative order: `traecera_score` descending, then `trending_score` descending.
+ */
+export function compareEcosystemProjects<
+  T extends { about?: string | null; traecera_score?: number; trending_score: number }
+>(a: T, b: T): number {
+  const aHasAbout = hasAboutText(a);
+  const bHasAbout = hasAboutText(b);
+
+  if (aHasAbout && !bHasAbout) return -1;
+  if (!aHasAbout && bHasAbout) return 1;
+
+  const scoreA = a.traecera_score ?? 0;
+  const scoreB = b.traecera_score ?? 0;
+  if (scoreB !== scoreA) return scoreB - scoreA;
+  return b.trending_score - a.trending_score;
+}

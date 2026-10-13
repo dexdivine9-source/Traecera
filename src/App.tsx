@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import ProjectLogo from '@/components/ProjectLogo';
 import ProjectAboutSection from '@/components/ProjectAboutSection';
-import { Project } from './data/projects';
+import { Project, compareEcosystemProjects } from './data/projects';
 import TierBadge from './components/TierBadge';
 import { motion, AnimatePresence } from 'motion/react';
 import Sidebar from './components/Sidebar';
@@ -232,12 +232,7 @@ function SignupView({ onClose }: { key?: React.Key; onClose: () => void }) {
 // -----------------------------------------
 function HomeView({ projects, onExplore, onProjectClick, onSignup, onSubmit, onOpenMenu, onInstitutional, onInnovation }: { projects: Project[]; key?: React.Key; onExplore: () => void; onProjectClick: (id: string) => void; onSignup: () => void; onSubmit: () => void; onOpenMenu: () => void; onInstitutional: () => void; onInnovation: () => void }) {
   const topProjects = [...projects]
-    .sort((a, b) => {
-      const scoreA = a.traecera_score ?? 0;
-      const scoreB = b.traecera_score ?? 0;
-      if (scoreB !== scoreA) return scoreB - scoreA;
-      return b.trending_score - a.trending_score;
-    })
+    .sort(compareEcosystemProjects)
     .slice(0, 5);
   
   const trendingProjects = [...projects]
@@ -446,12 +441,7 @@ function LeaderboardView({ projects, onHome, onProjectClick, onSubmit, externalC
       const matchCountry = filterCountry === 'All' || p.country === filterCountry;
       const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase());
       return matchCat && matchStatus && matchCountry && matchSearch;
-    }).sort((a, b) => {
-      const scoreA = a.traecera_score ?? 0;
-      const scoreB = b.traecera_score ?? 0;
-      if (scoreB !== scoreA) return scoreB - scoreA;
-      return b.trending_score - a.trending_score;
-    });
+    }).sort(compareEcosystemProjects);
   }, [projects, filterCat, filterStatus, filterCountry, search]);
 
   return (
