@@ -46,6 +46,8 @@ export type EditableProjectPayload = {
   is_doxxed: boolean
   has_audit: boolean
   is_active: boolean
+  about: string | null
+  about_updated: string | null
 }
 
 function includesValue<T extends readonly string[]>(list: T, value: string): value is T[number] {
@@ -120,6 +122,8 @@ export function validateEditableProjectPayload(body: Record<string, unknown>): {
       is_doxxed: asBoolean(body.is_doxxed),
       has_audit: asBoolean(body.has_audit),
       is_active: asBoolean(body.is_active),
+      about: asNullableString(body.about),
+      about_updated: asNullableString(body.about_updated),
     },
   }
 }

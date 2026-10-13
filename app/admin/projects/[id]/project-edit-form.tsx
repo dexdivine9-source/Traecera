@@ -41,10 +41,18 @@ export default function ProjectEditForm({ projectId, initial }: ProjectEditFormP
     setError(null)
 
     try {
+      const payload = {
+        ...form,
+        about_updated:
+          form.about && !form.about_updated
+            ? new Date().toISOString().slice(0, 10)
+            : form.about_updated,
+      }
+
       const res = await fetch(`/api/admin/projects/${projectId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       })
       const data = await res.json()
 
@@ -53,6 +61,7 @@ export default function ProjectEditForm({ projectId, initial }: ProjectEditFormP
         return
       }
 
+      setForm(payload)
       setSuccess('Project updated successfully.')
       router.refresh()
     } catch (err: unknown) {
@@ -126,6 +135,32 @@ export default function ProjectEditForm({ projectId, initial }: ProjectEditFormP
               className={inputClass}
               value={form.logo ?? ''}
               onChange={(e) => setField('logo', e.target.value)}
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[#0c0c0f]/60 border border-white/5 rounded-2xl p-6 md:p-8 space-y-6 shadow-xl">
+        <h2 className="text-lg font-bold text-white font-display border-b border-white/5 pb-3">
+          About
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="md:col-span-2">
+            <label className={labelClass}>About (markdown)</label>
+            <textarea
+              className={`${inputClass} min-h-[180px] resize-y font-mono text-xs leading-relaxed`}
+              value={form.about ?? ''}
+              onChange={(e) => setField('about', e.target.value)}
+              placeholder={'## Overview\n\n**Nectar** is...\n\n- Point one\n- Point two'}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>About updated</label>
+            <input
+              type="date"
+              className={inputClass}
+              value={form.about_updated ?? ''}
+              onChange={(e) => setField('about_updated', e.target.value || null)}
             />
           </div>
         </div>

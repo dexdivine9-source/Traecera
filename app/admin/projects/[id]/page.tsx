@@ -33,7 +33,9 @@ const SELECT_FIELDS = `
   onchain_verified,
   is_doxxed,
   has_audit,
-  is_active
+  is_active,
+  about,
+  about_updated
 `
 
 function toFormPayload(row: Record<string, unknown>): EditableProjectPayload {
@@ -60,6 +62,8 @@ function toFormPayload(row: Record<string, unknown>): EditableProjectPayload {
     is_doxxed: Boolean(row.is_doxxed),
     has_audit: Boolean(row.has_audit),
     is_active: row.is_active == null ? true : Boolean(row.is_active),
+    about: typeof row.about === 'string' ? row.about : null,
+    about_updated: typeof row.about_updated === 'string' ? row.about_updated.slice(0, 10) : null,
   }
 }
 
