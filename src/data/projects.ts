@@ -44,6 +44,10 @@ export interface Project {
   website?: string;
   /** Curation state set by the admin approval flow: pending | verified | rejected. */
   verification_status?: string;
+  /** Long-form markdown profile copy. Hidden in UI when empty. */
+  about?: string;
+  /** Date the about copy was last updated. */
+  about_updated?: string;
 }
 
 function num(v: unknown): number {
@@ -130,6 +134,12 @@ export function mapSupabaseProjectRow(row: Record<string, unknown>): Project {
     verification_status:
       typeof row.verification_status === "string" && row.verification_status.trim() !== ""
         ? row.verification_status
+        : undefined,
+    about:
+      typeof row.about === "string" && row.about.trim() !== "" ? row.about : undefined,
+    about_updated:
+      typeof row.about_updated === "string" && row.about_updated.trim() !== ""
+        ? row.about_updated
         : undefined,
   };
 }

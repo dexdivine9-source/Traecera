@@ -24,6 +24,7 @@ import {
   Rocket
 } from 'lucide-react';
 import ProjectLogo from '@/components/ProjectLogo';
+import ProjectAboutSection from '@/components/ProjectAboutSection';
 import { Project } from './data/projects';
 import TierBadge from './components/TierBadge';
 import { motion, AnimatePresence } from 'motion/react';
@@ -790,6 +791,12 @@ function ProjectDetailView({ projects, projectId, onBack, onHome, onSubmit, onOp
             )}
           </div>
         </div>
+
+        <ProjectAboutSection
+          about={project.about}
+          aboutUpdated={project.about_updated}
+          className="mb-12"
+        />
 
         {/* Metrics Dashboard */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">

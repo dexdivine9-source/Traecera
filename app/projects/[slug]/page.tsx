@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import ProjectLogo from '@/components/ProjectLogo'
-import AboutMarkdown, { formatAboutUpdated } from '@/components/AboutMarkdown'
+import ProjectAboutSection from '@/components/ProjectAboutSection'
 import { getProjectBySlug, getProjectsByCategory } from '@/lib/projects'
 import { ExternalLink, Twitter, Activity, Globe, MapPin, CheckCircle, Users, BarChart3, TrendingUp, Zap, Clock, ShieldCheck, Database } from 'lucide-react'
 
@@ -135,18 +135,11 @@ export default async function ProjectProfile({ params }: PageProps) {
       </header>
 
       {typeof project.about === 'string' && project.about.trim() !== '' && (
-        <section className="border-b border-white/5 bg-zinc-950/80">
+        <div className="border-b border-white/5 bg-zinc-950/80">
           <div className="mx-auto max-w-6xl px-6 py-16">
-            <h2 className="text-2xl font-semibold mb-8 text-white">About</h2>
-            <div className="max-w-3xl rounded-2xl border border-white/5 bg-zinc-900/40 p-6 md:p-8">
-              <AboutMarkdown markdown={project.about} />
-              <p className="mt-8 pt-5 border-t border-white/5 text-xs text-zinc-500 leading-relaxed">
-                Last updated: {formatAboutUpdated(project.about_updated) ?? '—'}. Figures marked
-                &apos;reported&apos; come from the project and are not verified by TRÆCERA.
-              </p>
-            </div>
+            <ProjectAboutSection about={project.about} aboutUpdated={project.about_updated} />
           </div>
-        </section>
+        </div>
       )}
 
       {/* SECTION 2 — Intelligence Pillars */}
