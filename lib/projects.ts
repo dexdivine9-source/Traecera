@@ -81,3 +81,19 @@ export async function getInnovationProjects() {
 
   return data
 }
+
+// Get metrics snapshots for a project ordered by snapshot_date (active history)
+export async function getProjectSnapshots(projectId: string) {
+  const { data, error } = await supabase
+    .from('project_metrics_snapshots')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('snapshot_date', { ascending: true })
+
+  if (error) {
+    console.error('[TRÆCERA] Error fetching project snapshots:', error)
+    return []
+  }
+
+  return data ?? []
+}

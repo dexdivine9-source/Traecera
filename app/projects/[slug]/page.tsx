@@ -3,7 +3,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import ProjectLogo from '@/components/ProjectLogo'
 import ProjectAboutSection from '@/components/ProjectAboutSection'
-import { getProjectBySlug, getProjectsByCategory } from '@/lib/projects'
+import ProjectEconomicActivity from '@/components/ProjectEconomicActivity'
+import { getProjectBySlug, getProjectsByCategory, getProjectSnapshots } from '@/lib/projects'
 import { ExternalLink, Twitter, Activity, Globe, MapPin, CheckCircle, Users, BarChart3, TrendingUp, Zap, Clock, ShieldCheck, Database } from 'lucide-react'
 
 type PageProps = {
@@ -71,6 +72,8 @@ export default async function ProjectProfile({ params }: PageProps) {
   } catch (e) {
     console.error("Failed to fetch related projects");
   }
+
+  const snapshots = await getProjectSnapshots(project.id).catch(() => []);
 
   const logoUrl = project.logo || project.logo_url || "https://avatar.vercel.sh/" + project.name;
   const description = project.full_description || project.short_description || project.description || "No description available.";
@@ -142,8 +145,12 @@ export default async function ProjectProfile({ params }: PageProps) {
         </div>
       )}
 
-      {/* SECTION 2 — Intelligence Pillars */}
+      {/* SECTION 2 — Economic Activity & Intelligence Pillars */}
       <main className="mx-auto max-w-6xl px-6 py-16">
+        <div className="mb-16">
+          <ProjectEconomicActivity projectId={project.id} initialSnapshots={snapshots} />
+        </div>
+
         <h2 className="text-2xl font-semibold mb-8 text-white flex items-center gap-2">
           <Database className="h-6 w-6 text-purple-400" /> Intelligence Pillars
         </h2>

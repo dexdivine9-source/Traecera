@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import ProjectLogo from '@/components/ProjectLogo';
 import ProjectAboutSection from '@/components/ProjectAboutSection';
+import ProjectEconomicActivity from '@/components/ProjectEconomicActivity';
 import { Project, compareEcosystemProjects } from './data/projects';
 import TierBadge from './components/TierBadge';
 import { motion, AnimatePresence } from 'motion/react';
@@ -638,22 +639,6 @@ function ProjectDetailView({ projects, projectId, onBack, onHome, onSubmit, onOp
   
   if (!project) return <div>Project not found</div>;
 
-  const chartData = useMemo(() => {
-    let base = project.metrics.active_users * 0.4;
-    const data = [];
-    const months = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
-    for(let i = 0; i < 6; i++) {
-       base = base * (1 + (Math.random() * 0.2 + 0.05));
-       data.push({ 
-         name: months[i], 
-         users: Math.floor(base), 
-         volume: Math.floor(base * 350)
-       });
-    }
-    data[5] = { name: 'Apr', users: project.metrics.active_users, volume: project.metrics.transaction_volume };
-    return data;
-  }, [project]);
-
   const isVerified = useMemo(() => {
     return [...projects]
       .sort((a, b) => b.trending_score - a.trending_score)
@@ -788,176 +773,8 @@ function ProjectDetailView({ projects, projectId, onBack, onHome, onSubmit, onOp
           className="mb-12"
         />
 
-        {/* Metrics Dashboard */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          <div className="glass-card p-6">
-            <div className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 mb-4">
-              <TrendingUp size={16} className="text-brand-blue" /> Growth ( 24 hrs )
-            </div>
-            <div className="text-3xl font-bold text-white font-mono">
-              {project.metrics.volume_24h ? `+${project.metrics.volume_24h.toLocaleString()}%` : <span className="text-slate-500">—</span>}
-            </div>
-          </div>
-          
-          <div className="glass-card p-6">
-            <div className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 mb-4">
-              <Activity size={16} className="text-brand-purple" /> Volume (30d)
-            </div>
-            <div className="text-3xl font-bold text-white font-mono">
-              {project.metrics.transaction_volume ? `$${(project.metrics.transaction_volume / 1000000).toFixed(2)}M` : <span className="text-slate-500">—</span>}
-            </div>
-          </div>
-
-          <div className="glass-card p-6 relative overflow-hidden">
-            <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl opacity-20 rounded-full ${project.metrics.growth_percent >= 0 ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-            <div className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 mb-4 relative z-10">
-              <TrendingUp size={16} className={project.metrics.growth_percent >= 0 ? 'text-emerald-400' : 'text-rose-400'} /> Growth (30d)
-            </div>
-            {project.metrics.growth_percent ? (
-              <div className={`text-3xl font-bold font-mono relative z-10 ${project.metrics.growth_percent >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {project.metrics.growth_percent >= 0 ? '+' : ''}{project.metrics.growth_percent}%
-              </div>
-            ) : (
-              <div className="text-3xl font-bold font-mono relative z-10 text-slate-500">—</div>
-            )}
-          </div>
-
-          <div className="glass-card p-6">
-            <div className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 mb-4">
-              Network
-            </div>
-            <div className="mt-2">
-              <span className={`badge ${
-                project.metrics.onchain_activity === 'High' ? 'badge-activity-high scale-110 origin-left' : 'badge-trending scale-110 origin-left'
-              }`}>
-                {project.metrics.onchain_activity} Activity
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="glass-card p-6 h-[400px] flex flex-col">
-             <div className="flex justify-between items-center w-full mb-6 relative z-10">
-               <h3 className="text-heading-3 text-white">Active Users (6 Mo)</h3>
-               <span className="badge badge-trending">MoM Growth</span>
-             </div>
-            
-            <div className="flex-1 min-h-0 w-full relative z-10">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#14F195" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#14F195" stopOpacity={0.0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis 
-                    dataKey="name" 
-                    stroke="#9CA3AF" 
-                    fontSize={12} 
-                    tickLine={false} 
-                    axisLine={false}
-                    padding={{ left: 20, right: 20 }}
-                  />
-                  <YAxis 
-                    stroke="#9CA3AF" 
-                    fontSize={12} 
-                    tickLine={false} 
-                    axisLine={false}
-                    tickFormatter={(value) => `${value >= 1000 ? (value/1000).toFixed(0) + 'k' : value}`}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(10, 10, 15, 0.9)', 
-                      borderColor: 'rgba(255,255,255,0.1)',
-                      borderRadius: '12px',
-                      color: '#fff',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-                      backdropFilter: 'blur(8px)'
-                    }} 
-                    itemStyle={{ color: '#14F195', fontWeight: 'bold' }}
-                    labelStyle={{ color: '#9CA3AF', marginBottom: '4px' }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="users" 
-                    stroke="#14F195" 
-                    strokeWidth={3}
-                    fillOpacity={1} 
-                    fill="url(#colorUsers)" 
-                    animationDuration={1500}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-            {/* Chart ambient glow */}
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-1/2 bg-emerald-500/5 blur-[100px] pointer-events-none rounded-full" />
-          </div>
-
-          <div className="glass-card p-6 h-[400px] flex flex-col">
-             <div className="flex justify-between items-center w-full mb-6 relative z-10">
-               <h3 className="text-heading-3 text-white">Transaction Volume</h3>
-               <span className="badge">USD (Equivalent)</span>
-             </div>
-            
-            <div className="flex-1 min-h-0 w-full relative z-10">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorVol" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#9945FF" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#9945FF" stopOpacity={0.0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis 
-                    dataKey="name" 
-                    stroke="#9CA3AF" 
-                    fontSize={12} 
-                    tickLine={false} 
-                    axisLine={false}
-                    padding={{ left: 20, right: 20 }}
-                  />
-                  <YAxis 
-                    stroke="#9CA3AF" 
-                    fontSize={12} 
-                    tickLine={false} 
-                    axisLine={false}
-                    tickFormatter={(value) => `$${value >= 1000000 ? (value/1000000).toFixed(1) + 'M' : value >= 1000 ? (value/1000).toFixed(0) + 'k' : value}`}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(10, 10, 15, 0.9)', 
-                      borderColor: 'rgba(255,255,255,0.1)',
-                      borderRadius: '12px',
-                      color: '#fff',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-                      backdropFilter: 'blur(8px)'
-                    }} 
-                    itemStyle={{ color: '#9945FF', fontWeight: 'bold' }}
-                    labelStyle={{ color: '#9CA3AF', marginBottom: '4px' }}
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'Volume']}
-                  />
-                  <Area 
-                    type="stepAfter" 
-                    dataKey="volume" 
-                    stroke="#9945FF" 
-                    strokeWidth={3}
-                    fillOpacity={1} 
-                    fill="url(#colorVol)" 
-                    animationDuration={1500}
-                    animationBegin={300}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-            {/* Chart ambient glow */}
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-1/2 bg-brand-purple/5 blur-[100px] pointer-events-none rounded-full" />
-          </div>
-        </div>
+        {/* Economic Activity Section */}
+        <ProjectEconomicActivity projectId={project.id} className="mb-12" />
 
       </div>
 
