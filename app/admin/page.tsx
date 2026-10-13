@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { Layers, Clock, ShieldCheck, ArrowRight, Image, Inbox, ExternalLink } from 'lucide-react'
+import { Layers, Clock, ShieldCheck, ArrowRight, Image, Inbox, FolderKanban } from 'lucide-react'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -94,7 +94,7 @@ export default async function AdminDashboardPage() {
       {/* Curation Portals / Actions */}
       <div className="space-y-6">
         <h2 className="text-xl font-bold text-white font-display">Curation Portals</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Submissions Portal Card */}
           <Link href="/admin/submissions" className="group">
             <div className="h-full bg-[#0c0c0f]/60 border border-white/5 hover:border-violet-500/20 hover:bg-[#121217]/60 transition-all duration-300 p-6 rounded-2xl shadow-xl flex flex-col justify-between">
@@ -131,6 +131,26 @@ export default async function AdminDashboardPage() {
               </div>
               <div className="flex items-center text-xs font-semibold text-fuchsia-400 gap-1.5 font-mono uppercase tracking-wider">
                 Resolve Logos <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </Link>
+
+          {/* Manage Projects Card */}
+          <Link href="/admin/projects" className="group">
+            <div className="h-full bg-[#0c0c0f]/60 border border-white/5 hover:border-indigo-500/20 hover:bg-[#121217]/60 transition-all duration-300 p-6 rounded-2xl shadow-xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400">
+                    <FolderKanban size={20} />
+                  </div>
+                  <h3 className="font-bold text-white group-hover:text-indigo-400 transition-colors text-lg">Manage Projects</h3>
+                </div>
+                <p className="text-sm text-zinc-400 leading-relaxed mb-6">
+                  Search existing directory listings and edit project metadata, verification flags, program addresses, and publication status.
+                </p>
+              </div>
+              <div className="flex items-center text-xs font-semibold text-indigo-400 gap-1.5 font-mono uppercase tracking-wider">
+                Edit Listings <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
           </Link>
