@@ -15,10 +15,11 @@ export async function POST(req: Request) {
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // 1. Fetch all projects
+    // 1. Fetch all active projects
     const { data: projects, error } = await supabase
       .from('projects')
-      .select('*');
+      .select('*')
+      .is('deleted_at', null);
 
     if (error || !projects) {
       throw new Error(error?.message || 'Failed to fetch projects from Supabase');

@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { Layers, Clock, ShieldCheck, ArrowRight, Image, Inbox, FolderKanban } from 'lucide-react'
+import { Layers, Clock, ShieldCheck, ArrowRight, Image, Inbox, FolderKanban, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -8,23 +8,26 @@ export default async function AdminDashboardPage() {
   const supabase = await createClient()
 
   // Fetch counts in parallel using server-side client
-  const [totalRes, pendingRes, verifiedRes] = await Promise.all([
-    supabase.from('projects').select('id', { count: 'exact', head: true }),
+  const [totalRes, pendingRes, verifiedRes, trashRes] = await Promise.all([
+    supabase.from('projects').select('id', { count: 'exact', head: true }).is('deleted_at', null),
     supabase.from('submitted_projects').select('id', { count: 'exact', head: true }).eq('submission_status', 'pending'),
-    supabase.from('projects').select('id', { count: 'exact', head: true }).eq('verification_status', 'verified'),
+    supabase.from('projects').select('id', { count: 'exact', head: true }).is('deleted_at', null).eq('verification_status', 'verified'),
+    supabase.from('projects').select('id', { count: 'exact', head: true }).not('deleted_at', 'is', null),
   ])
 
-  if (totalRes.error || pendingRes.error || verifiedRes.error) {
+  if (totalRes.error || pendingRes.error || verifiedRes.error || trashRes.error) {
     console.error('Error fetching dashboard counts:', {
       totalError: totalRes.error,
       pendingError: pendingRes.error,
       verifiedError: verifiedRes.error,
+      trashError: trashRes.error,
     })
   }
 
   const totalProjects = totalRes.count ?? 0
   const pendingSubmissions = pendingRes.count ?? 0
   const verifiedProjects = verifiedRes.count ?? 0
+  const trashCount = trashRes.count ?? 0
 
   return (
     <div className="space-y-12">
@@ -151,6 +154,33 @@ export default async function AdminDashboardPage() {
               </div>
               <div className="flex items-center text-xs font-semibold text-indigo-400 gap-1.5 font-mono uppercase tracking-wider">
                 Edit Listings <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </Link>
+
+          {/* Trash Portal Card */}
+          <Link href="/admin/trash" className="group">
+            <div className="h-full bg-[#0c0c0f]/60 border border-white/5 hover:border-rose-500/20 hover:bg-[#121217]/60 transition-all duration-300 p-6 rounded-2xl shadow-xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-400">
+                      <Trash2 size={20} />
+                    </div>
+                    <h3 className="font-bold text-white group-hover:text-rose-400 transition-colors text-lg">Project Trash</h3>
+                  </div>
+                  {trashCount > 0 && (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                      {trashCount}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-zinc-400 leading-relaxed mb-6">
+                  Review soft-deleted projects. Restore them back to the active directory or permanently erase them from the database.
+                </p>
+              </div>
+              <div className="flex items-center text-xs font-semibold text-rose-400 gap-1.5 font-mono uppercase tracking-wider">
+                Open Trash <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
           </Link>

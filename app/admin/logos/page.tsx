@@ -18,6 +18,7 @@ export default function AdminLogosPage() {
       const { data } = await supabase
         .from('projects')
         .select('name, slug, logo')
+        .is('deleted_at', null)
         .order('name');
       
       if (data) {

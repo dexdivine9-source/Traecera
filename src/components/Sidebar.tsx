@@ -94,6 +94,7 @@ export default function Sidebar({
       const { data: categories } = await supabase
         .from('projects')
         .select('category')
+        .is('deleted_at', null)
         .order('category');
 
       if (categories) {

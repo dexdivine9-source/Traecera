@@ -1,10 +1,11 @@
 import { supabase } from './supabase'
 
-// Get all projects
+// Get all projects (active only)
 export async function getAllProjects() {
   const { data, error } = await supabase
     .from('projects')
     .select('*')
+    .is('deleted_at', null)
     .order('created_at', { ascending: true })
   
   if (error) {
@@ -18,35 +19,38 @@ export async function getAllProjects() {
   return data
 }
 
-// Get single project by slug
+// Get single project by slug (active only)
 export async function getProjectBySlug(slug: string) {
   const { data, error } = await supabase
     .from('projects')
     .select('*')
     .eq('slug', slug)
+    .is('deleted_at', null)
     .single()
   
   if (error) throw error
   return data
 }
 
-// Get projects by category
+// Get projects by category (active only)
 export async function getProjectsByCategory(category: string) {
   const { data, error } = await supabase
     .from('projects')
     .select('*')
     .eq('category', category)
+    .is('deleted_at', null)
 
   if (error) throw error
   return data
 }
 
-// Get Institutional-tier projects (admin-curated: directory_tier = 'institutional')
+// Get Institutional-tier projects (admin-curated: directory_tier = 'institutional', active only)
 export async function getInstitutionalProjects() {
   const { data, error } = await supabase
     .from('projects')
     .select('*')
     .eq('directory_tier', 'institutional')
+    .is('deleted_at', null)
     .order('created_at', { ascending: true })
 
   if (error) {
@@ -59,12 +63,13 @@ export async function getInstitutionalProjects() {
   return data
 }
 
-// Get Innovation-tier projects (default tier: directory_tier = 'innovation')
+// Get Innovation-tier projects (default tier: directory_tier = 'innovation', active only)
 export async function getInnovationProjects() {
   const { data, error } = await supabase
     .from('projects')
     .select('*')
     .eq('directory_tier', 'innovation')
+    .is('deleted_at', null)
     .order('created_at', { ascending: true })
 
   if (error) {

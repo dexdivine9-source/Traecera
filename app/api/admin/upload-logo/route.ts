@@ -52,7 +52,8 @@ export async function POST(req: Request) {
     const { error: updateError } = await supabase
       .from('projects')
       .update({ logo: dbPath })
-      .eq('slug', slug);
+      .eq('slug', slug)
+      .is('deleted_at', null);
 
     if (updateError) {
       console.error("Supabase update error:", updateError);

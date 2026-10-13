@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertCircle, CheckCircle2, Loader2, Save } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Loader2, Save, Trash2, AlertTriangle } from 'lucide-react'
 import {
   DATA_SOURCES,
   PROJECT_CATEGORIES,
@@ -27,6 +27,31 @@ export default function ProjectEditForm({ projectId, initial }: ProjectEditFormP
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [showTrashModal, setShowTrashModal] = useState(false)
+  const [trashing, setTrashing] = useState(false)
+  const [trashError, setTrashError] = useState<string | null>(null)
+
+  const handleTrashProject = async () => {
+    setTrashing(true)
+    setTrashError(null)
+
+    try {
+      const res = await fetch(`/api/admin/projects/${projectId}`, {
+        method: 'DELETE',
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to move project to trash.')
+      }
+
+      router.push('/admin/projects')
+      router.refresh()
+    } catch (err) {
+      setTrashError(err instanceof Error ? err.message : 'Failed to move project to trash.')
+    } finally {
+      setTrashing(false)
+    }
+  }
 
   const setField = <K extends keyof EditableProjectPayload>(key: K, value: EditableProjectPayload[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -290,9 +315,7 @@ export default function ProjectEditForm({ projectId, initial }: ProjectEditFormP
           {(
             [
               ['social_verified', 'Social verified'],
-              ['product_verified', 'Product verified'],
               ['ecosystem_verified', 'Ecosystem verified'],
-              ['onchain_verified', 'On-chain verified'],
               ['is_doxxed', 'Is doxxed'],
               ['has_audit', 'Has audit'],
               ['is_active', 'Is active'],
@@ -314,16 +337,76 @@ export default function ProjectEditForm({ projectId, initial }: ProjectEditFormP
         </div>
       </section>
 
-      <div className="flex items-center justify-end gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-white/5">
+        <button
+          type="button"
+          onClick={() => {
+            setTrashError(null)
+            setShowTrashModal(true)
+          }}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600/10 border border-rose-500/20 text-rose-400 hover:bg-rose-600 hover:text-white px-5 py-3 text-sm font-semibold transition-all cursor-pointer"
+        >
+          <Trash2 size={16} />
+          Move to trash
+        </button>
+
         <button
           type="submit"
           disabled={saving}
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 disabled:from-zinc-800 disabled:to-zinc-800 disabled:cursor-not-allowed text-white px-6 py-3 text-sm font-semibold transition-all shadow-[0_0_20px_rgba(139,92,246,0.15)] cursor-pointer"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 disabled:from-zinc-800 disabled:to-zinc-800 disabled:cursor-not-allowed text-white px-6 py-3 text-sm font-semibold transition-all shadow-[0_0_20px_rgba(139,92,246,0.15)] cursor-pointer"
         >
           {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
           {saving ? 'Saving…' : 'Save changes'}
         </button>
       </div>
+
+      {/* Confirmation Modal for Moving to Trash */}
+      {showTrashModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0d0d12] p-6 shadow-2xl space-y-5">
+            <div className="flex items-center gap-3 text-rose-400">
+              <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20">
+                <AlertTriangle size={20} />
+              </div>
+              <h3 className="text-lg font-bold text-white">Move to Trash?</h3>
+            </div>
+
+            <p className="text-sm text-zinc-300 leading-relaxed">
+              Move <span className="font-semibold text-white">&quot;{initial.name}&quot;</span> to trash? It will disappear from the website.
+            </p>
+
+            <p className="text-xs text-zinc-500">
+              This is a soft delete. The project will be hidden from the home page, rankings, public profiles, and API routes. You can restore it anytime from the Trash page.
+            </p>
+
+            {trashError && (
+              <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-300 p-3 text-xs">
+                {trashError}
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                disabled={trashing}
+                onClick={() => setShowTrashModal(false)}
+                className="rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2.5 text-xs font-semibold text-zinc-300 transition-all cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={trashing}
+                onClick={handleTrashProject}
+                className="inline-flex items-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-500 px-4 py-2.5 text-xs font-semibold text-white shadow-lg shadow-rose-600/30 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {trashing && <Loader2 size={14} className="animate-spin" />}
+                Confirm Move to Trash
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   )
 }

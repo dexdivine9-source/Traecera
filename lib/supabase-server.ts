@@ -31,6 +31,7 @@ export async function listProgramAddresses(limit = 500): Promise<string[]> {
   const { data, error } = await supabase
     .from(PROJECTS_TABLE)
     .select("program_address")
+    .is("deleted_at", null)
     .not("program_address", "is", null)
     .limit(limit);
 
@@ -49,6 +50,7 @@ export async function saveProjectMetrics(programAddress: string, metrics: Helius
     .from(PROJECTS_TABLE)
     .select("id")
     .eq("program_address", programAddress)
+    .is("deleted_at", null)
     .maybeSingle();
 
   if (lookupError) throw new Error(`Failed to lookup project: ${lookupError.message}`);

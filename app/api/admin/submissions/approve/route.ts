@@ -34,6 +34,26 @@ export async function POST(req: Request) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '')
 
+    // Check if a project with this slug already exists (active or trashed)
+    const { data: existingProject } = await supabase
+      .from('projects')
+      .select('id, name, deleted_at')
+      .eq('slug', slug)
+      .maybeSingle()
+
+    if (existingProject) {
+      if (existingProject.deleted_at) {
+        return NextResponse.json(
+          { error: `Cannot approve submission: A project with slug "${slug}" already exists in the Trash. Restore or permanently delete it first.` },
+          { status: 400 }
+        )
+      }
+      return NextResponse.json(
+        { error: `Cannot approve submission: An active project with slug "${slug}" already exists.` },
+        { status: 400 }
+      )
+    }
+
     // 3. Copy submission into active projects table
     const { error: insertError } = await supabase
       .from('projects')

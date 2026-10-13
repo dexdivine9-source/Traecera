@@ -28,9 +28,7 @@ const SELECT_FIELDS = `
   data_source,
   verification_status,
   social_verified,
-  product_verified,
   ecosystem_verified,
-  onchain_verified,
   is_doxxed,
   has_audit,
   is_active,
@@ -56,9 +54,9 @@ function toFormPayload(row: Record<string, unknown>): EditableProjectPayload {
     verification_status:
       typeof row.verification_status === 'string' ? row.verification_status : null,
     social_verified: Boolean(row.social_verified),
-    product_verified: Boolean(row.product_verified),
+    product_verified: false,
     ecosystem_verified: Boolean(row.ecosystem_verified),
-    onchain_verified: Boolean(row.onchain_verified),
+    onchain_verified: false,
     is_doxxed: Boolean(row.is_doxxed),
     has_audit: Boolean(row.has_audit),
     is_active: row.is_active == null ? true : Boolean(row.is_active),
@@ -75,6 +73,7 @@ export default async function AdminProjectEditPage({ params }: PageProps) {
     .from('projects')
     .select(SELECT_FIELDS)
     .eq('id', id)
+    .is('deleted_at', null)
     .maybeSingle()
 
   if (error) {
